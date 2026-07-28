@@ -1,0 +1,44 @@
+# Render Blueprint — one-click deploy of the full app + a Postgres database.
+# Render dashboard: New → Blueprint → pick this repo. It creates the web
+# service and a free Postgres, wires DATABASE_URL automatically, generates a
+# SESSION_SECRET, and prompts you for ADMIN_PASSWORD.
+#
+# (You can also configure a Web Service manually with the same build/start
+# commands below.)
+
+databases:
+  - name: auto-revival-db
+    plan: free
+
+services:
+  - type: web
+    name: auto-revival
+    runtime: node
+    plan: free
+    buildCommand: npm install --include=dev && npm run build && npx prisma db push && npm run db:seed
+    startCommand: npm run start
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: auto-revival-db
+          property: connectionString
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: NODE_VERSION
+        value: "22"
+      # Public site URL — links in emails + Open Graph metadata.
+      - key: NEXT_PUBLIC_SITE_URL
+        value: "https://autorevival.co"
+      # Email notifications (optional). Set these in the Render dashboard once
+      # your Resend domain is verified.
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: OWNER_EMAIL
+        sync: false
+      # Protects /api/cron/reminders; generated for you.
+      - key: CRON_SECRET
+        generateValue: true

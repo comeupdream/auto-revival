@@ -1,0 +1,82 @@
+// Auto Revival — data model
+// Docs: https://pris.ly/d/prisma-schema
+//
+// Postgres (works on Render, Vercel, Neon, Supabase, etc.). Point DATABASE_URL
+// at your hosted Postgres connection string.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// A service the shop offers (interior detail, ceramic coating, etc.).
+/// Seeded in prisma/seed.ts.
+model Service {
+  id              String        @id @default(cuid())
+  name            String
+  description     String        @default("")
+  durationMinutes Int           // how long the job blocks the calendar
+  priceCents      Int           // price in cents (e.g. 6500 = $65.00)
+  category        String        @default("Exterior")
+  active          Boolean       @default(true)
+  sortOrder       Int           @default(0)
+  createdAt       DateTime      @default(now())
+  appointments    Appointment[]
+}
+
+/// A booked appointment. Times are stored in the shop's LOCAL time as plain
+/// strings (date "YYYY-MM-DD", time "HH:MM") to avoid timezone drift.
+model Appointment {
+  id              String            @id @default(cuid())
+  service         Service?          @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  serviceId       String?
+  serviceName     String            // snapshot of the service name at booking time
+  durationMinutes Int               // snapshot of duration so availability math is stable
+  priceCents      Int               @default(0)
+
+  date            String            // "YYYY-MM-DD" in shop local time
+  startTime       String            // "HH:MM" 24h start time
+
+  customerName    String
+  customerEmail   String            @default("")
+  customerPhone   String            @default("")
+  vehicle         String            @default("") // year / make / model, e.g. "2019 BMW M3"
+  notes           String            @default("")
+
+  // One of: CONFIRMED | COMPLETED | CANCELLED | NO_SHOW
+  // (stored as text — validated in app code).
+  status          String            @default("CONFIRMED")
+  source          String            @default("online") // "online" | "admin"
+
+  // When the 24h reminder email was sent (null = not yet). De-dupes reminders.
+  reminderSentAt  DateTime?
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([date])
+  @@index([status])
+}
+
+/// A photo for the public gallery (before / after shots). The image bytes live
+/// in the DB so they survive on hosts with an ephemeral filesystem (e.g.
+/// Render) without any external object storage. Images are resized
+/// client-side before upload.
+model PortfolioImage {
+  id        String   @id @default(cuid())
+  caption   String   @default("")
+  alt       String   @default("")
+  data      Bytes // the (resized) image bytes
+  mimeType  String   @default("image/jpeg")
+  width     Int      @default(0)
+  height    Int      @default(0)
+  sortOrder Int      @default(0) // lower sorts first; ties break on createdAt
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([published, sortOrder])
+}

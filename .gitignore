@@ -1,0 +1,35 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# next.js
+/.next/
+/out/
+next-env.d.ts
+*.tsbuildinfo
+
+# production
+/build
+
+# database (local SQLite)
+*.db
+*.db-journal
+/prisma/dev.db
+/prisma/*.db
+
+# env
+.env
+.env*.local
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+.vercel
+/coverage
+
+# local screenshot helpers
+shot*.cjs
+dbg*.cjs
+measure*.cjs
