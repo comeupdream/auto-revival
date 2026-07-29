@@ -34,7 +34,7 @@ export default function BrandLogo({
         onError={() => setIdx((i) => i + 1)}
         className={
           hero
-            ? "w-[min(46vw,300px)] drop-shadow-[0_0_34px_rgba(212,175,55,0.28)]"
+            ? "w-[min(62vw,400px)] drop-shadow-[0_10px_44px_rgba(0,0,0,0.85)]"
             : "h-9 w-auto"
         }
       />

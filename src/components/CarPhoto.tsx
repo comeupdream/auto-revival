@@ -23,9 +23,12 @@ function candidatesFor(side: "left" | "right"): string[] {
 export default function CarPhoto({
   side,
   className = "",
+  bare = false,
 }: {
   side: "left" | "right";
   className?: string;
+  /** Full-bleed mode: no gold frame, rounding, or shadow. */
+  bare?: boolean;
 }) {
   const [idx, setIdx] = useState(0);
   const candidates = candidatesFor(side);
@@ -33,7 +36,13 @@ export default function CarPhoto({
 
   return (
     <figure className={className}>
-      <div className="h-full w-full overflow-hidden rounded-xl2 border border-accent/50 bg-surface shadow-[0_24px_70px_rgba(0,0,0,0.7)]">
+      <div
+        className={`h-full w-full overflow-hidden ${
+          bare
+            ? "bg-black"
+            : "rounded-xl2 border border-accent/50 bg-surface shadow-[0_24px_70px_rgba(0,0,0,0.7)]"
+        }`}
+      >
         {exhausted ? (
           <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-6 text-center">
             <svg

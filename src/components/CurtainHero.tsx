@@ -72,30 +72,32 @@ export default function CurtainHero() {
       <div className="sticky top-0 h-screen overflow-hidden bg-black">
         {/* ------------------------------------------------------- The stage */}
         <div
-          className="gold-glow absolute inset-0"
+          className="absolute inset-0"
           style={{
             opacity: "calc(0.3 + var(--open) * 0.7)",
             transform: "scale(calc(0.95 + var(--open) * 0.05))",
           }}
         >
-          <div className="mx-auto flex h-full w-full max-w-[1750px] flex-col items-center justify-center gap-5 px-3 pt-16 sm:gap-7 sm:px-6">
+          {/* The two hero cars fill the entire stage — each covers half the
+              screen (side by side on desktop, stacked on mobile), cropped to
+              fill, never stretched. */}
+          <div className="absolute inset-0 grid grid-rows-2 md:grid-cols-2 md:grid-rows-1">
+            <CarPhoto
+              side="left"
+              bare
+              className="h-full w-full border-b border-accent/30 md:border-b-0 md:border-r"
+            />
+            <CarPhoto side="right" bare className="h-full w-full" />
+          </div>
+
+          {/* Soft vignette so the emblem and buttons read over the photos. */}
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_56%_52%_at_50%_48%,rgba(0,0,0,0.6),rgba(0,0,0,0.22)_58%,transparent_78%)]" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-black/85 to-transparent" />
+
+          {/* Center overlay: the emblem + calls to action. */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 px-4">
             <BrandLogo variant="hero" />
-
-            {/* The two hero cars, side by side, carrying the stage. */}
-            <div className="grid w-full grid-cols-2 gap-3 sm:gap-6">
-              <CarPhoto
-                side="left"
-                className="h-[24vh] w-full sm:h-[36vh] lg:h-[46vh]"
-              />
-              <CarPhoto
-                side="right"
-                className="h-[24vh] w-full sm:h-[36vh] lg:h-[46vh]"
-              />
-            </div>
-
-            <p className="hidden max-w-xl text-balance text-center text-lg leading-relaxed text-muted md:block">
-              {SHOP.tagline}
-            </p>
+            <p className="sr-only">{SHOP.tagline}</p>
             <div className="flex flex-wrap items-center justify-center gap-3">
               <Link href="/book" className="btn-accent !px-8 !py-3.5 text-base">
                 Book a detail
