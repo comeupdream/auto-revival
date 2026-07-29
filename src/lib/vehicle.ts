@@ -1,46 +1,92 @@
 /**
- * Vehicle size classification + size-based pricing.
+ * Vehicle types, detail pricing, and add-ons.
  *
- * Detailing effort scales with vehicle size, so listed prices are for a
- * sedan and larger classes carry a multiplier. The class is inferred from
- * the year/make/model the customer enters; pure functions, shared by the
- * booking form (live price preview) and the server (the price actually
- * stored on the appointment).
+ * The Full Detail (interior + exterior base wash & clean) is priced by
+ * vehicle type; add-ons and paint correction are flat-priced. The type is
+ * auto-detected from the year/make/model the customer enters and can be
+ * corrected with one tap in the booking form. Pure functions/constants,
+ * shared by the booking form (live price preview) and the server (the price
+ * actually stored on the appointment).
  */
 
-export type VehicleClass = "sedan" | "midsize" | "large";
+export type VehicleClass = "sedan" | "suv" | "truck" | "minivan";
+
+export const VEHICLE_CLASSES: VehicleClass[] = ["sedan", "suv", "truck", "minivan"];
 
 export const VEHICLE_CLASS_LABELS: Record<VehicleClass, string> = {
-  sedan: "Car / Sedan",
-  midsize: "Small SUV / Crossover",
-  large: "Truck / Large SUV / Van",
+  sedan: "Coupe / Sedan / Hatchback",
+  suv: "SUV",
+  truck: "Truck",
+  minivan: "Minivan",
 };
 
-/** Price multiplier per size class (sedan is the listed price). */
-export const CLASS_MULTIPLIER: Record<VehicleClass, number> = {
-  sedan: 1,
-  midsize: 1.15,
-  large: 1.3,
+/** Full Detail price per vehicle type. */
+export const DETAIL_PRICES: Record<VehicleClass, number> = {
+  sedan: 19900, // $199
+  suv: 24900, // $249
+  truck: 27900, // $279
+  minivan: 29900, // $299
 };
 
-const LARGE_RE =
-  /\b(f.?[123]50|silverado|sierra|ram\s?\d{4}|ram|tundra|titan|tahoe|suburban|yukon|escalade|expedition|navigator|sequoia|armada|4.?runner|pilot|palisade|telluride|traverse|atlas|explorer|wagoneer|land\s?cruiser|gx|lx\s?\d{3}|qx80|x7|gls|g\s?63|g\s?550|range\s?rover|defender|excursion|hummer|bronco(?!\s?sport)|gladiator|ridgeline|frontier|tacoma|colorado|ranger|maverick|sprinter|transit|promaster|express|savana|odyssey|sienna|pacifica|carnival|caravan|van|truck|dually)\b/i;
+/** Flat-priced add-ons, attached to a booking on top of the main service. */
+export type AddOn = {
+  id: string;
+  name: string;
+  priceCents: number;
+  minutes: number;
+  description: string;
+};
 
-const MID_RE =
-  /\b(cr.?v|rav.?4|rogue|murano|pathfinder|tucson|santa\s?fe|sportage|sorento|cx.?[59]0?|forester|outback|crosstrek|escape|edge|equinox|blazer|trailblazer|compass|cherokee|wrangler|highlander|venza|nx|rx|ux|x[135]|glb|glc|gle|q[357]|macan|cayenne|tiguan|taos|bronco\s?sport|encore|envision|enclave|xc[469]0|model\s?[xy]|mach.?e|id\.?4|ev[69]|ioniq\s?5|kona|seltos|niro|hr.?v|trax|crossover|suv)\b/i;
+export const ADD_ONS: AddOn[] = [
+  {
+    id: "clay-bar",
+    name: "Clay Bar Treatment",
+    priceCents: 3900, // $39
+    minutes: 30,
+    description: "Pulls embedded contaminants out of the paint for a glass-smooth finish.",
+  },
+  {
+    id: "engine-bay",
+    name: "Engine Bay Cleaning",
+    priceCents: 5900, // $59
+    minutes: 45,
+    description: "Careful degrease, rinse, and dress for a clean, factory-fresh bay.",
+  },
+];
 
-/** Best-effort size class from a free-form "year make model" string. */
+export function isVehicleClass(v: unknown): v is VehicleClass {
+  return typeof v === "string" && (VEHICLE_CLASSES as string[]).includes(v);
+}
+
+const MINIVAN_RE =
+  /\b(odyssey|sienna|pacifica|carnival|sedona|grand\s?caravan|caravan|quest|town\s?&?\s?country|voyager|transit\s?connect|metris|minivan|mini.?van)\b/i;
+
+const TRUCK_RE =
+  /\b(f.?[123]50|silverado|sierra|ram\s?\d{4}|ram|tundra|titan|tacoma|colorado|canyon|ranger|maverick|frontier|ridgeline|gladiator|cybertruck|santa\s?cruz|dakota|avalanche|sprinter|transit(?!\s?connect)|promaster|express|savana|pickup|truck|dually)\b/i;
+
+const SUV_RE =
+  /\b(cr.?v|rav.?4|rogue|murano|pathfinder|armada|tucson|santa\s?fe|palisade|sportage|sorento|telluride|cx.?[3459]0?|forester|outback|crosstrek|ascent|escape|edge|explorer|expedition|bronco|equinox|blazer|trailblazer|traverse|tahoe|suburban|yukon|escalade|compass|cherokee|wrangler|wagoneer|highlander|4.?runner|sequoia|land\s?cruiser|venza|rx|nx|gx|ux|lx|x[1357]|glb|glc|gle|gls|g\s?63|g\s?550|q[3578]|macan|cayenne|tiguan|taos|atlas|encore|envision|enclave|xc[469]0|model\s?[xy]|mach.?e|id\.?4|ev[69]|ioniq\s?5|kona|seltos|niro|hr.?v|passport|pilot|trax|range\s?rover|defender|discovery|outlander|eclipse\s?cross|cx|suv|crossover)\b/i;
+
+/** Best-effort vehicle type from a free-form "year make model" string. */
 export function classifyVehicle(vehicle: string): VehicleClass {
   const v = vehicle.trim();
   if (!v) return "sedan";
-  if (LARGE_RE.test(v)) return "large";
-  if (MID_RE.test(v)) return "midsize";
+  if (MINIVAN_RE.test(v)) return "minivan";
+  if (TRUCK_RE.test(v)) return "truck";
+  if (SUV_RE.test(v)) return "suv";
   return "sedan";
 }
 
-/** Apply the class multiplier to a base (sedan) price, rounded to $5. */
-export function adjustedPriceCents(baseCents: number, cls: VehicleClass): number {
-  return Math.round((baseCents * CLASS_MULTIPLIER[cls]) / 500) * 500;
+/**
+ * The price of a main service for a given vehicle type. The Full Detail is
+ * priced by type; everything else is flat.
+ */
+export function priceForService(
+  serviceId: string,
+  basePriceCents: number,
+  cls: VehicleClass,
+): number {
+  return serviceId === "full-detail" ? DETAIL_PRICES[cls] : basePriceCents;
 }
 
 /** Common makes for the booking form's Make dropdown. */

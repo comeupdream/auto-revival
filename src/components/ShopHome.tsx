@@ -7,6 +7,7 @@ import TestimonialForm from "@/components/TestimonialForm";
 import { formatDuration, formatPrice } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { SHOP, hoursForDisplay } from "@/lib/shop-config";
+import { ADD_ONS, DETAIL_PRICES } from "@/lib/vehicle";
 
 type ServiceCard = {
   id: string;
@@ -71,10 +72,9 @@ export async function ShopHome() {
             <p className="eyebrow">The menu</p>
             <h2 className="mt-2 font-serif text-4xl sm:text-5xl">Services &amp; Pricing</h2>
             <p className="mt-4 text-muted">
-              Every detail starts with a walk-around. Listed prices are
-              car/sedan rates — SUVs and trucks adjust automatically when you
-              book, and heavy soiling or pet hair may run higher. We&apos;ll
-              always confirm before we start.
+              We&apos;re a mobile detailer — we come to you. The Full Detail
+              is priced by vehicle type, and every job starts with a
+              walk-around so there are no surprises.
             </p>
           </div>
 
@@ -104,10 +104,20 @@ export async function ShopHome() {
                         <p className="mt-1 max-w-xl text-sm leading-relaxed text-muted">
                           {s.description}
                         </p>
+                        {s.id === "full-detail" && (
+                          <p className="mt-2 text-sm tabular-nums text-accent">
+                            Coupe/Sedan {formatPrice(DETAIL_PRICES.sedan)} · SUV{" "}
+                            {formatPrice(DETAIL_PRICES.suv)} · Truck{" "}
+                            {formatPrice(DETAIL_PRICES.truck)} · Minivan{" "}
+                            {formatPrice(DETAIL_PRICES.minivan)}
+                          </p>
+                        )}
                       </div>
                       <div className="flex shrink-0 flex-col items-end gap-1">
                         <span className="font-medium tabular-nums text-ink">
-                          <span className="mr-1 text-xs font-normal text-muted">from</span>
+                          {s.id === "full-detail" && (
+                            <span className="mr-1 text-xs font-normal text-muted">from</span>
+                          )}
                           {formatPrice(s.priceCents)}
                         </span>
                         <Link
@@ -122,6 +132,40 @@ export async function ShopHome() {
                 </div>
               </div>
             ))}
+
+            {/* Add-ons (attached to any detail, not booked alone) */}
+            <div className="grid gap-x-12 gap-y-6 lg:grid-cols-[220px_1fr]">
+              <div className="lg:sticky lg:top-28 lg:self-start">
+                <h3 className="font-serif text-3xl text-accent">Add-Ons</h3>
+                <div className="mt-2 h-px w-16 bg-accent/40" />
+                <p className="mt-3 text-sm text-muted">Added to any detail.</p>
+              </div>
+              <div className="divide-y divide-line">
+                {ADD_ONS.map((a) => (
+                  <div key={a.id} className="flex items-baseline justify-between gap-6 py-5">
+                    <div className="min-w-0">
+                      <h4 className="font-serif text-xl">{a.name}</h4>
+                      <p className="mt-1 max-w-xl text-sm leading-relaxed text-muted">
+                        {a.description}
+                      </p>
+                    </div>
+                    <span className="shrink-0 font-medium tabular-nums text-ink">
+                      +{formatPrice(a.priceCents)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="mx-auto mt-14 max-w-3xl rounded-xl2 border border-accent/20 bg-accent/5 px-6 py-5 text-center text-sm leading-relaxed text-muted">
+            <span className="font-semibold text-accent">A kind note:</span>{" "}
+            if an interior needs extra love — deep-set stains, heavy trash, or
+            the aftermath of kids or pets — an additional fee may apply for
+            the extra time and product. We&apos;ll always look the vehicle
+            over with you and agree on any adjustment before we start. And
+            since we come to you, please have a water supply (an outdoor
+            spigot) we can use on site.
           </div>
         </div>
       </section>

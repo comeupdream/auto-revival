@@ -45,6 +45,8 @@ model Appointment {
   customerEmail   String            @default("")
   customerPhone   String            @default("")
   vehicle         String            @default("") // year / make / model, e.g. "2019 BMW M3"
+  addOns          String            @default("") // e.g. "Clay Bar Treatment, Engine Bay Cleaning"
+  serviceAddress  String            @default("") // where we detail — this is a mobile service
   notes           String            @default("")
 
   // One of: CONFIRMED | COMPLETED | CANCELLED | NO_SHOW

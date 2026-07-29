@@ -22,8 +22,8 @@ export const SHOP = {
   /** IANA timezone the shop operates in. Drives "today" / past-slot logic. */
   timezone: "America/New_York",
 
-  /** Spacing between offered start times, in minutes. */
-  slotIntervalMinutes: 30,
+  /** The fixed appointment start times offered each open day. */
+  slotTimes: ["06:30", "09:30", "12:30", "15:30"],
 
   /** How far ahead clients may book, in days. */
   bookingHorizonDays: 60,
@@ -34,15 +34,16 @@ export const SHOP = {
   /**
    * Opening hours per weekday in shop-local time (24h "HH:MM").
    * Index: 0 = Sunday … 6 = Saturday. `null` means closed that day.
+   * `close` caps how late a job may run (last slot + its duration).
    */
   hours: {
     0: null, // Sunday — closed
-    1: { open: "08:00", close: "18:00" }, // Monday
-    2: { open: "08:00", close: "18:00" }, // Tuesday
-    3: { open: "08:00", close: "18:00" }, // Wednesday
-    4: { open: "08:00", close: "18:00" }, // Thursday
-    5: { open: "08:00", close: "18:00" }, // Friday
-    6: { open: "08:00", close: "15:00" }, // Saturday
+    1: { open: "06:30", close: "18:30" }, // Monday
+    2: { open: "06:30", close: "18:30" }, // Tuesday
+    3: { open: "06:30", close: "18:30" }, // Wednesday
+    4: { open: "06:30", close: "18:30" }, // Thursday
+    5: { open: "06:30", close: "18:30" }, // Friday
+    6: { open: "06:30", close: "18:30" }, // Saturday
   } as Record<number, DayHours>,
 } as const;
 

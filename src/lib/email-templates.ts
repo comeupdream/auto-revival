@@ -20,6 +20,8 @@ export type EmailAppointment = {
   customerEmail: string;
   customerPhone: string;
   vehicle: string;
+  addOns: string;
+  serviceAddress: string;
   notes: string;
 };
 
@@ -87,9 +89,11 @@ function detailsTable(a: EmailAppointment): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"
       style="margin:18px 0;background:${PAPER};border:1px solid ${LINE};border-radius:12px;padding:4px 16px;">
     ${row("Service", esc(a.serviceName))}
+    ${a.addOns ? row("Add-ons", esc(a.addOns)) : ""}
     ${a.vehicle ? row("Vehicle", esc(a.vehicle)) : ""}
     ${row("Date", formatDateLong(a.date))}
-    ${row("Drop-off", formatTime12(a.startTime))}
+    ${row("Arrival", formatTime12(a.startTime))}
+    ${a.serviceAddress ? row("Location", esc(a.serviceAddress)) : ""}
     ${row("Duration", formatDuration(a.durationMinutes))}
     ${a.priceCents ? row("Price", formatPrice(a.priceCents)) : ""}
   </table>`;
@@ -97,12 +101,14 @@ function detailsTable(a: EmailAppointment): string {
 
 function detailsText(a: EmailAppointment): string {
   const lines = [`  Service:   ${a.serviceName}`];
+  if (a.addOns) lines.push(`  Add-ons:   ${a.addOns}`);
   if (a.vehicle) lines.push(`  Vehicle:   ${a.vehicle}`);
   lines.push(
     `  Date:      ${formatDateLong(a.date)}`,
-    `  Drop-off:  ${formatTime12(a.startTime)}`,
-    `  Duration:  ${formatDuration(a.durationMinutes)}`,
+    `  Arrival:   ${formatTime12(a.startTime)}`,
   );
+  if (a.serviceAddress) lines.push(`  Location:  ${a.serviceAddress}`);
+  lines.push(`  Duration:  ${formatDuration(a.durationMinutes)}`);
   if (a.priceCents) lines.push(`  Price:     ${formatPrice(a.priceCents)}`);
   return lines.join("\n");
 }
@@ -117,10 +123,12 @@ export function clientBookingConfirmation(a: EmailAppointment): BuiltEmail {
   const body = `
     <p style="margin:0 0 4px;">Hi ${esc(firstName(a.customerName))}, your appointment at ${esc(SHOP.name)} is confirmed — we can't wait to get to work.</p>
     ${detailsTable(a)}
+    <p style="color:${MUTED};font-size:13px;margin:0 0 10px;">Please have the vehicle accessible and a water supply (outdoor spigot) available when we arrive.</p>
     <p style="color:${MUTED};font-size:13px;margin:0;">Need to change or cancel? Just reply to this email or call us at ${esc(SHOP.phone)}.</p>`;
   const text =
     `Hi ${firstName(a.customerName)}, your appointment at ${SHOP.name} is confirmed.\n\n` +
     detailsText(a) +
+    `\n\nPlease have the vehicle accessible and a water supply (outdoor spigot) available when we arrive.` +
     `\n\nNeed to change or cancel? Reply to this email or call ${SHOP.phone}.\n\n${footerText()}`;
   return {
     subject,

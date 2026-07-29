@@ -4,10 +4,13 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatDateLong, formatDuration, formatPrice, formatTime12 } from "@/lib/format";
 import {
+  ADD_ONS,
+  VEHICLE_CLASSES,
   VEHICLE_CLASS_LABELS,
   VEHICLE_MAKES,
-  adjustedPriceCents,
   classifyVehicle,
+  priceForService,
+  type VehicleClass,
 } from "@/lib/vehicle";
 
 export type BookingService = {
@@ -51,6 +54,7 @@ export default function BookingForm({
 
   const [step, setStep] = useState<Step>(1);
   const [serviceId, setServiceId] = useState(validInitial);
+  const [addOnIds, setAddOnIds] = useState<string[]>([]);
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
 
@@ -61,30 +65,46 @@ export default function BookingForm({
   const [vYear, setVYear] = useState("");
   const [vMake, setVMake] = useState("");
   const [vModel, setVModel] = useState("");
-  const [form, setForm] = useState({ name: "", phone: "", email: "", notes: "" });
+  const [typeOverride, setTypeOverride] = useState<VehicleClass | null>(null);
+  const [form, setForm] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    address: "",
+    notes: "",
+  });
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [confirmed, setConfirmed] = useState<null | {
     service: string;
+    addOns: string;
     date: string;
     time: string;
     name: string;
     vehicle: string;
+    address: string;
     priceCents: number;
   }>(null);
 
-  // The vehicle string drives size-class pricing everywhere below.
+  // Vehicle string + type. The type is auto-detected from make/model and can
+  // be corrected with the chips; it sets the Full Detail price.
   const vehicleStr = [vYear, vMake === "Other" ? "" : vMake, vModel]
     .filter(Boolean)
     .join(" ")
     .trim();
-  const vClass = classifyVehicle(vehicleStr);
-  const priceFor = (s: BookingService) => adjustedPriceCents(s.priceCents, vClass);
+  const autoClass = classifyVehicle(vehicleStr);
+  const vClass: VehicleClass = typeOverride ?? autoClass;
+
+  const priceMain = (s: BookingService) => priceForService(s.id, s.priceCents, vClass);
+  const chosenAddOns = ADD_ONS.filter((a) => addOnIds.includes(a.id));
+  const addOnMinutes = chosenAddOns.reduce((sum, a) => sum + a.minutes, 0);
+  const addOnCents = chosenAddOns.reduce((sum, a) => sum + a.priceCents, 0);
 
   const service = useMemo(
     () => services.find((s) => s.id === serviceId) ?? null,
     [services, serviceId],
   );
+  const totalCents = service ? priceMain(service) + addOnCents : addOnCents;
 
   const grouped = useMemo(() => {
     const m = new Map<string, BookingService[]>();
@@ -95,7 +115,8 @@ export default function BookingForm({
     return Array.from(m.entries());
   }, [services]);
 
-  // Fetch availability whenever the service or date changes.
+  // Fetch availability whenever the service, add-ons, or date change (add-ons
+  // extend the job, which can rule out the last slot of the day).
   const reqId = useRef(0);
   useEffect(() => {
     if (!serviceId || !date) {
@@ -106,7 +127,7 @@ export default function BookingForm({
     setLoadingSlots(true);
     setSlotError("");
     setTime("");
-    fetch(`/api/availability?date=${date}&serviceId=${serviceId}`)
+    fetch(`/api/availability?date=${date}&serviceId=${serviceId}&extra=${addOnMinutes}`)
       .then((r) => r.json())
       .then((data) => {
         if (id !== reqId.current) return; // stale response
@@ -124,17 +145,24 @@ export default function BookingForm({
       .finally(() => {
         if (id === reqId.current) setLoadingSlots(false);
       });
-  }, [serviceId, date]);
+  }, [serviceId, date, addOnMinutes]);
 
   function pickService(id: string) {
+    if (id !== serviceId) {
+      setDate("");
+      setTime("");
+    }
     setServiceId(id);
-    setDate("");
-    setTime("");
-    setStep(3);
+  }
+
+  function toggleAddOn(id: string) {
+    setAddOnIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
   }
 
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim());
-  const canContinueDetails = Boolean(form.name.trim() && emailOk);
+  const canContinueDetails = Boolean(form.name.trim() && emailOk && form.address.trim());
 
   async function submit() {
     if (!service || !date || !time || !canContinueDetails) return;
@@ -152,6 +180,9 @@ export default function BookingForm({
           customerPhone: form.phone,
           customerEmail: form.email,
           vehicle: vehicleStr,
+          vehicleType: vClass,
+          addOns: addOnIds,
+          serviceAddress: form.address,
           notes: form.notes,
         }),
       });
@@ -162,7 +193,9 @@ export default function BookingForm({
         if (res.status === 409) {
           setTime("");
           reqId.current++;
-          const r = await fetch(`/api/availability?date=${date}&serviceId=${service.id}`);
+          const r = await fetch(
+            `/api/availability?date=${date}&serviceId=${service.id}&extra=${addOnMinutes}`,
+          );
           const d = await r.json();
           setSlots(Array.isArray(d.slots) ? d.slots : []);
         }
@@ -170,11 +203,13 @@ export default function BookingForm({
       }
       setConfirmed({
         service: service.name,
+        addOns: chosenAddOns.map((a) => a.name).join(", "),
         date,
         time,
         name: form.name.trim(),
         vehicle: vehicleStr,
-        priceCents: priceFor(service),
+        address: form.address.trim(),
+        priceCents: totalCents,
       });
     } catch {
       setSubmitError("Network error. Please try again.");
@@ -194,15 +229,21 @@ export default function BookingForm({
         </div>
         <h2 className="mt-6 text-3xl">You&apos;re booked!</h2>
         <p className="mt-2 text-muted">
-          Thanks, {confirmed.name.split(" ")[0]} — we can&apos;t wait to get to work.
+          Thanks, {confirmed.name.split(" ")[0]} — we&apos;ll come to you.
         </p>
         <div className="mx-auto mt-8 max-w-sm space-y-3 rounded-xl2 border border-line bg-bg/60 p-6 text-left text-sm">
           <Row label="Service" value={confirmed.service} />
+          {confirmed.addOns && <Row label="Add-ons" value={confirmed.addOns} />}
           {confirmed.vehicle && <Row label="Vehicle" value={confirmed.vehicle} />}
           <Row label="Date" value={formatDateLong(confirmed.date)} />
-          <Row label="Drop-off" value={formatTime12(confirmed.time)} />
-          <Row label="Price" value={formatPrice(confirmed.priceCents)} />
+          <Row label="Arrival" value={formatTime12(confirmed.time)} />
+          <Row label="Location" value={confirmed.address} />
+          <Row label="Total" value={formatPrice(confirmed.priceCents)} />
         </div>
+        <p className="mx-auto mt-6 max-w-sm text-xs text-muted">
+          Please have a water supply (outdoor spigot) available and the
+          vehicle accessible when we arrive.
+        </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link href="/" className="btn-ghost">
             Back to home
@@ -212,12 +253,14 @@ export default function BookingForm({
             onClick={() => {
               setConfirmed(null);
               setServiceId("");
+              setAddOnIds([]);
               setDate("");
               setTime("");
               setVYear("");
               setVMake("");
               setVModel("");
-              setForm({ name: "", phone: "", email: "", notes: "" });
+              setTypeOverride(null);
+              setForm({ name: "", phone: "", email: "", address: "", notes: "" });
               setStep(1);
             }}
           >
@@ -228,8 +271,7 @@ export default function BookingForm({
     );
   }
 
-  const canSubmit = Boolean(date && time && canContinueDetails) && !submitting;
-  const hasVehicleInfo = Boolean(vehicleStr);
+  const canSubmit = Boolean(service && date && time && canContinueDetails) && !submitting;
 
   return (
     <div className="card overflow-hidden">
@@ -318,23 +360,36 @@ export default function BookingForm({
                     id="v-model"
                     className="field-input"
                     value={vModel}
-                    onChange={(e) => setVModel(e.target.value)}
+                    onChange={(e) => {
+                      setVModel(e.target.value);
+                      setTypeOverride(null); // re-detect on model change
+                    }}
                     placeholder="M3, F-150, CR-V…"
                   />
                 </div>
               </div>
-              <p className="mt-2 text-xs text-muted">
-                {hasVehicleInfo ? (
-                  <>
-                    Priced as <span className="font-medium text-accent">{VEHICLE_CLASS_LABELS[vClass]}</span>
-                    {vClass !== "sedan" &&
-                      " — larger vehicles take more time and product, so prices adjust"}
-                    .
-                  </>
-                ) : (
-                  "Listed prices are car/sedan rates — trucks and SUVs adjust automatically."
-                )}
-              </p>
+
+              <div className="mt-4">
+                <span className="field-label">
+                  Vehicle type <span className="text-xs font-normal text-muted">(sets your Full Detail price)</span>
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {VEHICLE_CLASSES.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setTypeOverride(c)}
+                      className={`rounded-full border px-3.5 py-1.5 text-xs transition-colors ${
+                        vClass === c
+                          ? "border-accent bg-accent font-semibold text-black"
+                          : "border-line text-muted hover:border-accent/40 hover:text-ink"
+                      }`}
+                    >
+                      {VEHICLE_CLASS_LABELS[c]}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             <div>
@@ -387,8 +442,23 @@ export default function BookingForm({
                   {form.email.length > 0 && !emailOk && (
                     <p className="mt-1 text-xs text-accent">Enter a valid email address.</p>
                   )}
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="field-label" htmlFor="address">
+                    Service address <span className="text-accent">*</span>
+                  </label>
+                  <input
+                    id="address"
+                    className="field-input"
+                    value={form.address}
+                    onChange={(e) => setForm({ ...form, address: e.target.value })}
+                    placeholder="Street address, city — where the vehicle will be"
+                    autoComplete="street-address"
+                  />
                   <p className="mt-1 text-xs text-muted">
-                    We&apos;ll send your confirmation and a reminder here.
+                    We&apos;re a mobile detailer — we come to you. Please make
+                    sure we&apos;ll have access to a water supply (an outdoor
+                    spigot) at this address.
                   </p>
                 </div>
                 <div className="sm:col-span-2">
@@ -400,11 +470,20 @@ export default function BookingForm({
                     className="field-input min-h-20 resize-y"
                     value={form.notes}
                     onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                    placeholder="Heavy pet hair in the back seats, water spots on the hood…"
+                    placeholder="Heavy pet hair in the back seats, water spots on the hood, gate code…"
                   />
                 </div>
               </div>
             </div>
+
+            <p className="rounded-xl2 border border-accent/20 bg-accent/5 px-4 py-3 text-xs leading-relaxed text-muted">
+              <span className="font-semibold text-accent">A kind note:</span>{" "}
+              if an interior needs extra love — deep-set stains, heavy trash,
+              or the aftermath of kids or pets — an additional fee may apply
+              for the extra time and product. We&apos;ll always look the
+              vehicle over with you and agree on any adjustment before we
+              start.
+            </p>
 
             <div className="flex items-center justify-end pt-2">
               <button
@@ -422,26 +501,18 @@ export default function BookingForm({
         {step === 2 && (
           <div className="space-y-8">
             <div className="rounded-xl2 border border-line bg-bg/50 px-4 py-3 text-sm">
-              {hasVehicleInfo ? (
-                <>
-                  Prices shown for your{" "}
-                  <span className="font-medium text-ink">{vehicleStr}</span>{" "}
-                  <span className="text-muted">
-                    ({VEHICLE_CLASS_LABELS[vClass]} rates)
-                  </span>
-                </>
-              ) : (
-                <span className="text-muted">
-                  Showing car/sedan rates —{" "}
-                  <button
-                    onClick={() => setStep(1)}
-                    className="font-medium text-accent hover:underline"
-                  >
-                    add your vehicle
-                  </button>{" "}
-                  for exact pricing.
-                </span>
-              )}
+              Prices shown for{" "}
+              <span className="font-medium text-ink">
+                {vehicleStr || VEHICLE_CLASS_LABELS[vClass]}
+              </span>{" "}
+              <span className="text-muted">({VEHICLE_CLASS_LABELS[vClass]} rate)</span>
+              {" · "}
+              <button
+                onClick={() => setStep(1)}
+                className="font-medium text-accent hover:underline"
+              >
+                change
+              </button>
             </div>
 
             {grouped.map(([category, items]) => (
@@ -468,7 +539,7 @@ export default function BookingForm({
                       </div>
                       <div className="flex shrink-0 flex-col items-end">
                         <span className="font-medium tabular-nums">
-                          {formatPrice(priceFor(s))}
+                          {formatPrice(priceMain(s))}
                         </span>
                         <span className="text-xs text-muted">
                           {formatDuration(s.durationMinutes)}
@@ -480,10 +551,64 @@ export default function BookingForm({
               </div>
             ))}
 
-            <div className="flex items-center justify-between pt-2">
+            <div>
+              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-accent">
+                Add-ons
+              </h3>
+              <div className="grid gap-3">
+                {ADD_ONS.map((a) => {
+                  const on = addOnIds.includes(a.id);
+                  return (
+                    <button
+                      key={a.id}
+                      onClick={() => toggleAddOn(a.id)}
+                      className={`flex items-center justify-between gap-4 rounded-xl border p-4 text-left transition-all ${
+                        on ? "border-accent bg-accent/5" : "border-line bg-bg/40 hover:border-accent/40"
+                      }`}
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span
+                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border text-xs ${
+                            on ? "border-accent bg-accent text-black" : "border-line text-transparent"
+                          }`}
+                        >
+                          ✓
+                        </span>
+                        <div className="min-w-0">
+                          <div className="font-medium">{a.name}</div>
+                          <div className="mt-0.5 truncate text-sm text-muted">
+                            {a.description}
+                          </div>
+                        </div>
+                      </div>
+                      <span className="shrink-0 font-medium tabular-nums">
+                        +{formatPrice(a.priceCents)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-4 border-t border-line pt-5">
               <button onClick={() => setStep(1)} className="btn-ghost">
                 ← Back
               </button>
+              <div className="flex items-center gap-4">
+                <div className="text-right text-sm">
+                  <div className="text-muted">Total</div>
+                  <div className="text-lg font-semibold tabular-nums text-accent">
+                    {service ? formatPrice(totalCents) : "—"}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setStep(3)}
+                  disabled={!service}
+                  className="btn-accent"
+                >
+                  Continue
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -493,10 +618,19 @@ export default function BookingForm({
           <div className="space-y-6">
             <div className="flex items-center justify-between gap-4 rounded-xl2 border border-line bg-bg/50 p-4">
               <div>
-                <div className="font-medium">{service.name}</div>
+                <div className="font-medium">
+                  {service.name}
+                  {chosenAddOns.length > 0 && (
+                    <span className="text-muted">
+                      {" "}
+                      + {chosenAddOns.map((a) => a.name).join(", ")}
+                    </span>
+                  )}
+                </div>
                 <div className="text-sm text-muted">
-                  {formatDuration(service.durationMinutes)} · {formatPrice(priceFor(service))}
-                  {hasVehicleInfo && <> · {vehicleStr}</>}
+                  {formatDuration(service.durationMinutes + addOnMinutes)} ·{" "}
+                  <span className="font-medium text-accent">{formatPrice(totalCents)}</span>
+                  {vehicleStr && <> · {vehicleStr}</>}
                 </div>
               </div>
               <button
@@ -545,10 +679,10 @@ export default function BookingForm({
 
             {date && (
               <div>
-                <div className="field-label">Available drop-off times</div>
+                <div className="field-label">Available arrival times</div>
                 {loadingSlots ? (
-                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                    {Array.from({ length: 8 }).map((_, i) => (
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {Array.from({ length: 4 }).map((_, i) => (
                       <div key={i} className="h-10 animate-pulse rounded-lg bg-line/60" />
                     ))}
                   </div>
@@ -561,7 +695,7 @@ export default function BookingForm({
                     No openings for this date. Try another day above.
                   </p>
                 ) : (
-                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {slots.map((s) => (
                       <button
                         key={s}
@@ -577,6 +711,10 @@ export default function BookingForm({
                     ))}
                   </div>
                 )}
+                <p className="mt-2 text-xs text-muted">
+                  We arrive at your address at the chosen time — please have
+                  the vehicle and a water spigot accessible.
+                </p>
               </div>
             )}
 
@@ -591,7 +729,7 @@ export default function BookingForm({
                 ← Back
               </button>
               <button onClick={submit} disabled={!canSubmit} className="btn-accent">
-                {submitting ? "Booking…" : "Confirm booking"}
+                {submitting ? "Booking…" : `Confirm booking · ${formatPrice(totalCents)}`}
               </button>
             </div>
           </div>

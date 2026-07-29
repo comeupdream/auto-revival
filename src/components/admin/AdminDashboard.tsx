@@ -36,6 +36,8 @@ type Appointment = {
   customerEmail: string;
   customerPhone: string;
   vehicle: string;
+  addOns: string;
+  serviceAddress: string;
   notes: string;
   status: AppointmentStatus;
   source: string;
@@ -178,6 +180,8 @@ export default function AdminDashboard({
       "Duration (min)",
       "Client",
       "Vehicle",
+      "Add-ons",
+      "Address",
       "Phone",
       "Email",
       "Price",
@@ -193,6 +197,8 @@ export default function AdminDashboard({
         r.durationMinutes,
         r.customerName,
         r.vehicle,
+        r.addOns,
+        r.serviceAddress,
         r.customerPhone,
         r.customerEmail,
         (r.priceCents / 100).toFixed(2),
@@ -433,6 +439,9 @@ export default function AdminDashboard({
                         </td>
                         <td className="px-4 py-3">
                           <div className="font-medium">{r.serviceName}</div>
+                          {r.addOns && (
+                            <div className="mt-0.5 text-xs text-accent">+ {r.addOns}</div>
+                          )}
                           {r.notes && (
                             <div className="mt-0.5 max-w-[220px] truncate text-xs text-muted" title={r.notes}>
                               {r.notes}
@@ -446,7 +455,12 @@ export default function AdminDashboard({
                           )}
                         </td>
                         <td className="px-4 py-3 text-xs leading-relaxed">
-                          {r.vehicle || <span className="text-muted/60">—</span>}
+                          <div>{r.vehicle || <span className="text-muted/60">—</span>}</div>
+                          {r.serviceAddress && (
+                            <div className="mt-0.5 max-w-[180px] truncate text-muted" title={r.serviceAddress}>
+                              {r.serviceAddress}
+                            </div>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-xs leading-relaxed">
                           {r.customerPhone && <div>{r.customerPhone}</div>}
@@ -551,6 +565,7 @@ function AddAppointmentModal({
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [vehicle, setVehicle] = useState("");
+  const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -574,6 +589,7 @@ function AddAppointmentModal({
           customerPhone: phone,
           customerEmail: email,
           vehicle,
+          serviceAddress: address,
           notes,
         }),
       });
@@ -674,6 +690,15 @@ function AddAppointmentModal({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="field-input"
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="field-label">Service address</label>
+            <input
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              className="field-input"
+              placeholder="Where the vehicle will be"
             />
           </div>
           <div className="sm:col-span-2">

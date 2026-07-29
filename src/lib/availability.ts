@@ -5,13 +5,15 @@ import { minutesToTime, timeToMinutes, weekdayOf } from "./time";
 export type BusyBlock = { startTime: string; durationMinutes: number };
 
 /**
- * Compute bookable start times for a date + service duration.
+ * Compute bookable start times for a date + job duration.
  *
- * Rules:
- *  - Must fall within that weekday's opening hours.
- *  - The whole service (start + duration) must finish before closing.
- *  - Must not overlap an existing busy block.
- *  - For "today", must respect the minimum lead time.
+ * The shop offers a fixed set of daily start times (SHOP.slotTimes). A slot
+ * is offered when:
+ *  - the day is open,
+ *  - the whole job (start + duration) finishes before closing,
+ *  - it doesn't overlap an existing busy block (long jobs consume the
+ *    following slot(s) automatically),
+ *  - and, for "today", it respects the minimum lead time.
  *
  * Returns "HH:MM" start times, ascending.
  */
@@ -25,13 +27,11 @@ export function computeAvailableSlots(
 
   const openMin = timeToMinutes(hours.open);
   const closeMin = timeToMinutes(hours.close);
-  const step = SHOP.slotIntervalMinutes;
 
   // Earliest allowed start if the date is today.
   let earliest = openMin;
   if (dateISO === shopTodayISO()) {
-    const nowMin = timeToMinutes(shopNowHM()) + SHOP.minLeadMinutes;
-    earliest = Math.max(earliest, Math.ceil(nowMin / step) * step);
+    earliest = Math.max(earliest, timeToMinutes(shopNowHM()) + SHOP.minLeadMinutes);
   }
 
   const busyRanges = busy.map((b) => {
@@ -39,14 +39,13 @@ export function computeAvailableSlots(
     return [s, s + b.durationMinutes] as const;
   });
 
-  const slots: string[] = [];
-  for (let start = openMin; start + durationMinutes <= closeMin; start += step) {
-    if (start < earliest) continue;
+  return SHOP.slotTimes.filter((t) => {
+    const start = timeToMinutes(t);
+    if (start < earliest) return false;
     const end = start + durationMinutes;
-    const overlaps = busyRanges.some(([bs, be]) => start < be && bs < end);
-    if (!overlaps) slots.push(minutesToTime(start));
-  }
-  return slots;
+    if (start < openMin || end > closeMin) return false;
+    return !busyRanges.some(([bs, be]) => start < be && bs < end);
+  });
 }
 
 /** Does a proposed booking overlap any existing busy block? */

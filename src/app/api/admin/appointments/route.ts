@@ -59,6 +59,7 @@ export async function POST(req: Request) {
     customerEmail: body.customerEmail ? String(body.customerEmail) : "",
     customerPhone: body.customerPhone ? String(body.customerPhone) : "",
     vehicle: body.vehicle ? String(body.vehicle) : "",
+    serviceAddress: body.serviceAddress ? String(body.serviceAddress) : "",
     notes: body.notes ? String(body.notes) : "",
     source: "admin",
     bypassWindowChecks: true,

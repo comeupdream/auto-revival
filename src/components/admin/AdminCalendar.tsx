@@ -20,6 +20,8 @@ type Appt = {
   customerPhone: string;
   customerEmail: string;
   vehicle: string;
+  addOns: string;
+  serviceAddress: string;
   notes: string;
   status: AppointmentStatus;
   source: string;
@@ -210,6 +212,10 @@ export function AdminCalendar({ today }: { today: string }) {
                           {a.vehicle && <span className="text-muted"> · {a.vehicle}</span>}
                           {a.customerPhone && <span className="text-muted"> · {a.customerPhone}</span>}
                         </div>
+                        {a.addOns && <div className="mt-0.5 text-xs text-accent">+ {a.addOns}</div>}
+                        {a.serviceAddress && (
+                          <div className="mt-0.5 text-xs text-muted">{a.serviceAddress}</div>
+                        )}
                         {a.notes && <div className="mt-1 text-xs text-muted">{a.notes}</div>}
                       </div>
                       <div className="flex shrink-0 flex-col items-end gap-1">

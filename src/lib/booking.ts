@@ -5,7 +5,13 @@ import { clientBookingConfirmation, ownerNewBooking, type EmailAppointment } fro
 import { prisma } from "./prisma";
 import { SHOP, shopTodayISO } from "./shop-config";
 import { addDaysISO, isValidDateISO, isValidTime } from "./time";
-import { adjustedPriceCents, classifyVehicle } from "./vehicle";
+import {
+  ADD_ONS,
+  classifyVehicle,
+  isVehicleClass,
+  priceForService,
+  type VehicleClass,
+} from "./vehicle";
 
 /** Existing appointments that occupy the calendar on a given date. */
 export async function getBusyBlocks(dateISO: string): Promise<BusyBlock[]> {
@@ -23,9 +29,15 @@ export type CreateBookingInput = {
   customerEmail?: string;
   customerPhone?: string;
   vehicle?: string;
+  /** Explicit vehicle type from the form; falls back to classifying `vehicle`. */
+  vehicleType?: string;
+  /** Add-on ids from src/lib/vehicle.ts (clay-bar, engine-bay). */
+  addOnIds?: string[];
+  /** Where we detail — this is a mobile service. */
+  serviceAddress?: string;
   notes?: string;
   source?: "online" | "admin";
-  /** Admin bookings may bypass the lead-time / horizon limits. */
+  /** Admin bookings may bypass the lead-time / horizon / fixed-slot limits. */
   bypassWindowChecks?: boolean;
   /** Which confirmation emails to fire. Defaults to both. */
   notify?: { client?: boolean; owner?: boolean };
@@ -56,7 +68,7 @@ export async function createBooking(
   if (!service || !service.active)
     return { ok: false, error: "That service is unavailable.", code: 400 };
 
-  // Date-window checks (skipped for admin walk-ins).
+  // Date-window + fixed-slot checks (skipped for admin walk-ins).
   if (!input.bypassWindowChecks) {
     const today = shopTodayISO();
     if (input.date < today)
@@ -68,28 +80,41 @@ export async function createBooking(
         error: `Bookings are open up to ${SHOP.bookingHorizonDays} days out.`,
         code: 400,
       };
+    if (!(SHOP.slotTimes as readonly string[]).includes(input.startTime))
+      return { ok: false, error: "Please pick one of the offered time slots.", code: 400 };
   }
 
-  if (!isWithinHours(input.date, input.startTime, service.durationMinutes))
+  // Resolve add-ons (dedupe, ignore unknown ids) + vehicle-type pricing.
+  const addOns = [...new Set(input.addOnIds ?? [])]
+    .map((id) => ADD_ONS.find((a) => a.id === id))
+    .filter((a): a is (typeof ADD_ONS)[number] => Boolean(a));
+  const vehicle = input.vehicle?.trim() ?? "";
+  const cls: VehicleClass = isVehicleClass(input.vehicleType)
+    ? input.vehicleType
+    : classifyVehicle(vehicle);
+
+  const durationMinutes =
+    service.durationMinutes + addOns.reduce((sum, a) => sum + a.minutes, 0);
+  const priceCents =
+    priceForService(service.id, service.priceCents, cls) +
+    addOns.reduce((sum, a) => sum + a.priceCents, 0);
+
+  if (!isWithinHours(input.date, input.startTime, durationMinutes))
     return { ok: false, error: "We're closed at that time.", code: 409 };
 
   const busy = await getBusyBlocks(input.date);
-  if (hasConflict(input.startTime, service.durationMinutes, busy))
+  if (hasConflict(input.startTime, durationMinutes, busy))
     return {
       ok: false,
       error: "Sorry — that time was just taken. Please pick another.",
       code: 409,
     };
 
-  // Listed prices are sedan rates; larger vehicles carry a multiplier.
-  const vehicle = input.vehicle?.trim() ?? "";
-  const priceCents = adjustedPriceCents(service.priceCents, classifyVehicle(vehicle));
-
   const appt = await prisma.appointment.create({
     data: {
       serviceId: service.id,
       serviceName: service.name,
-      durationMinutes: service.durationMinutes,
+      durationMinutes,
       priceCents,
       date: input.date,
       startTime: input.startTime,
@@ -97,6 +122,8 @@ export async function createBooking(
       customerEmail: input.customerEmail?.trim() ?? "",
       customerPhone: input.customerPhone?.trim() ?? "",
       vehicle,
+      addOns: addOns.map((a) => a.name).join(", "),
+      serviceAddress: input.serviceAddress?.trim() ?? "",
       notes: input.notes?.trim() ?? "",
       status: "CONFIRMED",
       source: input.source ?? "online",

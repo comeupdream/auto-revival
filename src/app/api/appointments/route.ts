@@ -16,6 +16,9 @@ export async function POST(req: Request) {
     customerEmail: body.customerEmail ? String(body.customerEmail) : "",
     customerPhone: body.customerPhone ? String(body.customerPhone) : "",
     vehicle: body.vehicle ? String(body.vehicle) : "",
+    vehicleType: body.vehicleType ? String(body.vehicleType) : "",
+    addOnIds: Array.isArray(body.addOns) ? body.addOns.map(String) : [],
+    serviceAddress: body.serviceAddress ? String(body.serviceAddress) : "",
     notes: body.notes ? String(body.notes) : "",
     source: "online",
   });

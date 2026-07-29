@@ -21,8 +21,13 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Invalid service." }, { status: 400 });
   }
 
+  // Optional extra minutes for selected add-ons, so the offered slots match
+  // what the create call will validate against.
+  const extraRaw = Number(searchParams.get("extra") ?? 0);
+  const extra = Number.isFinite(extraRaw) ? Math.min(Math.max(Math.round(extraRaw), 0), 240) : 0;
+
   const busy = await getBusyBlocks(date);
-  const slots = computeAvailableSlots(date, service.durationMinutes, busy);
+  const slots = computeAvailableSlots(date, service.durationMinutes + extra, busy);
 
   return NextResponse.json({
     date,
