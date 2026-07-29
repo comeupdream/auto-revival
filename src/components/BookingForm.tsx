@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatDateLong, formatDuration, formatPrice, formatTime12 } from "@/lib/format";
+import { SHOP } from "@/lib/shop-config";
 import {
   ADD_ONS,
   VEHICLE_CLASSES,
@@ -26,7 +27,6 @@ type Props = {
   services: BookingService[];
   minDate: string;
   maxDate: string;
-  quickDates: string[];
   initialServiceId?: string;
 };
 
@@ -45,7 +45,6 @@ export default function BookingForm({
   services,
   minDate,
   maxDate,
-  quickDates,
   initialServiceId = "",
 }: Props) {
   const validInitial = services.some((s) => s.id === initialServiceId)
@@ -642,39 +641,13 @@ export default function BookingForm({
             </div>
 
             <div>
-              <label className="field-label" htmlFor="date">
-                Choose a date
-              </label>
-              <input
-                id="date"
-                type="date"
-                value={date}
-                min={minDate}
-                max={maxDate}
-                onChange={(e) => setDate(e.target.value)}
-                className="field-input max-w-xs"
+              <div className="field-label">Choose a date</div>
+              <MonthCalendar
+                minDate={minDate}
+                maxDate={maxDate}
+                selected={date}
+                onSelect={setDate}
               />
-              {quickDates.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {quickDates.map((d) => (
-                    <button
-                      key={d}
-                      onClick={() => setDate(d)}
-                      className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
-                        date === d
-                          ? "border-accent bg-accent text-black"
-                          : "border-line text-muted hover:border-accent/40 hover:text-ink"
-                      }`}
-                    >
-                      {new Date(d + "T00:00:00").toLocaleDateString("en-US", {
-                        weekday: "short",
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
 
             {date && (
@@ -744,6 +717,120 @@ function Row({ label, value }: { label: string; value: string }) {
     <div className="flex justify-between gap-4">
       <span className="text-muted">{label}</span>
       <span className="text-right font-medium">{value}</span>
+    </div>
+  );
+}
+
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+const WEEKDAY_HEAD = ["S", "M", "T", "W", "T", "F", "S"];
+
+/**
+ * Inline month calendar for picking the service date. Past days, closed days
+ * (see SHOP.hours), and days beyond the booking horizon are disabled.
+ */
+function MonthCalendar({
+  minDate,
+  maxDate,
+  selected,
+  onSelect,
+}: {
+  minDate: string;
+  maxDate: string;
+  selected: string;
+  onSelect: (iso: string) => void;
+}) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const minY = Number(minDate.slice(0, 4));
+  const minM = Number(minDate.slice(5, 7)) - 1;
+  const maxY = Number(maxDate.slice(0, 4));
+  const maxM = Number(maxDate.slice(5, 7)) - 1;
+
+  const [cur, setCur] = useState({ y: minY, m: minM });
+
+  const leading = new Date(cur.y, cur.m, 1).getDay();
+  const daysInMonth = new Date(cur.y, cur.m + 1, 0).getDate();
+  const rows = Math.ceil((leading + daysInMonth) / 7);
+  const canPrev = cur.y > minY || (cur.y === minY && cur.m > minM);
+  const canNext = cur.y < maxY || (cur.y === maxY && cur.m < maxM);
+
+  function shift(delta: number) {
+    setCur((c) => {
+      const d = new Date(c.y, c.m + delta, 1);
+      return { y: d.getFullYear(), m: d.getMonth() };
+    });
+  }
+
+  return (
+    <div className="max-w-sm rounded-xl2 border border-line bg-bg/50 p-3">
+      <div className="mb-2 flex items-center justify-between px-1">
+        <button
+          type="button"
+          onClick={() => shift(-1)}
+          disabled={!canPrev}
+          aria-label="Previous month"
+          className="rounded-full border border-line px-2.5 py-1 text-sm transition-colors hover:border-accent/40 disabled:opacity-30"
+        >
+          ←
+        </button>
+        <span className="text-sm font-medium">
+          {MONTH_NAMES[cur.m]} {cur.y}
+        </span>
+        <button
+          type="button"
+          onClick={() => shift(1)}
+          disabled={!canNext}
+          aria-label="Next month"
+          className="rounded-full border border-line px-2.5 py-1 text-sm transition-colors hover:border-accent/40 disabled:opacity-30"
+        >
+          →
+        </button>
+      </div>
+
+      <div className="grid grid-cols-7 text-center text-[11px] uppercase tracking-wider text-muted">
+        {WEEKDAY_HEAD.map((w, i) => (
+          <div key={i} className="py-1">
+            {w}
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-7 gap-1">
+        {Array.from({ length: rows * 7 }, (_, i) => {
+          const d = i - leading + 1;
+          if (d < 1 || d > daysInMonth) return <div key={i} />;
+          const iso = `${cur.y}-${pad(cur.m + 1)}-${pad(d)}`;
+          const closed = !SHOP.hours[new Date(cur.y, cur.m, d).getDay()];
+          const disabled = closed || iso < minDate || iso > maxDate;
+          const isSelected = iso === selected;
+          const isToday = iso === minDate;
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => !disabled && onSelect(iso)}
+              disabled={disabled}
+              className={`h-10 rounded-lg border text-sm tabular-nums transition-all ${
+                isSelected
+                  ? "border-accent bg-accent font-semibold text-black shadow-sm"
+                  : disabled
+                    ? "cursor-default border-transparent text-muted/30"
+                    : `border-transparent hover:border-accent/50 hover:bg-accent/5 ${
+                        isToday ? "border-line text-accent" : ""
+                      }`
+              }`}
+            >
+              {d}
+            </button>
+          );
+        })}
+      </div>
+
+      <p className="mt-2 px-1 text-[11px] text-muted">
+        Closed Sundays · booking open {SHOP.bookingHorizonDays} days out
+      </p>
     </div>
   );
 }

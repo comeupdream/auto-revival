@@ -4,26 +4,13 @@ import BookingForm, { type BookingService } from "@/components/BookingForm";
 import SiteFooter from "@/components/SiteFooter";
 import { prisma } from "@/lib/prisma";
 import { SHOP, shopTodayISO } from "@/lib/shop-config";
-import { addDaysISO, weekdayOf } from "@/lib/time";
+import { addDaysISO } from "@/lib/time";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Book a detail",
 };
-
-/** The next `n` open dates, starting today, as ISO strings. */
-function nextOpenDates(n: number): string[] {
-  const out: string[] = [];
-  let cursor = shopTodayISO();
-  let guard = 0;
-  while (out.length < n && guard < 90) {
-    if (SHOP.hours[weekdayOf(cursor)]) out.push(cursor);
-    cursor = addDaysISO(cursor, 1);
-    guard++;
-  }
-  return out;
-}
 
 export default async function BookPage({
   searchParams,
@@ -49,7 +36,6 @@ export default async function BookPage({
 
   const minDate = shopTodayISO();
   const maxDate = addDaysISO(minDate, SHOP.bookingHorizonDays);
-  const quickDates = nextOpenDates(6);
 
   return (
     <div className="brushed flex min-h-screen flex-col">
@@ -83,7 +69,6 @@ export default async function BookPage({
           services={list}
           minDate={minDate}
           maxDate={maxDate}
-          quickDates={quickDates}
           initialServiceId={initialServiceId}
         />
       </main>

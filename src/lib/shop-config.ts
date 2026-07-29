@@ -27,7 +27,7 @@ export const SHOP = {
   slotTimes: ["06:30", "09:30", "12:30", "15:30"],
 
   /** How far ahead clients may book, in days. */
-  bookingHorizonDays: 60,
+  bookingHorizonDays: 30,
 
   /** Minimum lead time before a job can start today, in minutes. */
   minLeadMinutes: 60,
