@@ -34,7 +34,7 @@ export default function BrandLogo({
         onError={() => setIdx((i) => i + 1)}
         className={
           hero
-            ? "w-[min(66vw,430px)] drop-shadow-[0_0_34px_rgba(212,175,55,0.28)]"
+            ? "w-[min(46vw,300px)] drop-shadow-[0_0_34px_rgba(212,175,55,0.28)]"
             : "h-9 w-auto"
         }
       />
@@ -53,19 +53,19 @@ export default function BrandLogo({
   return (
     <div className="flex flex-col items-center">
       {/* Double-ring monogram */}
-      <div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-accent/80 p-1.5 shadow-[0_0_34px_rgba(212,175,55,0.3)] sm:h-24 sm:w-24">
+      <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-accent/80 p-1 shadow-[0_0_34px_rgba(212,175,55,0.3)] sm:h-16 sm:w-16">
         <div className="flex h-full w-full items-center justify-center rounded-full border border-accent/50">
-          <span className="text-gold-gradient font-serif text-2xl font-bold sm:text-3xl">
+          <span className="text-gold-gradient font-serif text-lg font-bold sm:text-xl">
             AR
           </span>
         </div>
       </div>
 
-      <div className="text-gold-gradient mt-5 font-serif text-4xl font-bold tracking-[0.12em] sm:text-6xl lg:text-7xl">
+      <div className="text-gold-gradient mt-3 font-serif text-3xl font-bold tracking-[0.12em] sm:text-4xl lg:text-5xl">
         AUTO&nbsp;REVIVAL
       </div>
 
-      <div className="mt-4 flex items-center gap-4">
+      <div className="mt-3 flex items-center gap-4">
         <span className="h-px w-10 bg-gradient-to-r from-transparent to-accent sm:w-16" />
         <span className="text-[10px] uppercase tracking-[0.42em] text-accent sm:text-xs">
           Premium Auto Detailing

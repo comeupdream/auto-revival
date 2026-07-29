@@ -3,13 +3,15 @@
 import { useState } from "react";
 
 /**
- * One of the two hero car photos flanking the logo.
+ * One of the two hero car photos revealed behind the curtain.
  *
  * Looks for the photo in /public/cars under a few friendly names
- * (car-left / car-1 and car-right / car-2, in jpg/jpeg/png/webp). Until the
- * files are pushed to the repo, a gold-framed "coming soon" placeholder
- * renders in the same footprint — drop the photos in and they appear with
- * no code change.
+ * (car-left / car-1 and car-right / car-2, in jpg/jpeg/png/webp). If none
+ * exists yet, a gold-framed "coming soon" placeholder renders in the same
+ * footprint — drop the photos in and they appear with no code change.
+ *
+ * The frame fills whatever size the parent gives it (set width/height via
+ * `className`); the photo covers the frame.
  */
 const EXTS = ["jpg", "jpeg", "png", "webp"];
 
@@ -31,9 +33,9 @@ export default function CarPhoto({
 
   return (
     <figure className={className}>
-      <div className="overflow-hidden rounded-xl2 border border-accent/50 bg-surface shadow-[0_18px_50px_rgba(0,0,0,0.65)]">
+      <div className="h-full w-full overflow-hidden rounded-xl2 border border-accent/50 bg-surface shadow-[0_24px_70px_rgba(0,0,0,0.7)]">
         {exhausted ? (
-          <div className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 p-6 text-center">
+          <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-6 text-center">
             <svg
               viewBox="0 0 64 32"
               className="w-16 text-accent/70"
@@ -57,7 +59,7 @@ export default function CarPhoto({
                 : "Showroom-shine results from Auto Revival"
             }
             onError={() => setIdx((i) => i + 1)}
-            className="aspect-[4/3] w-full object-cover"
+            className="h-full w-full object-cover"
           />
         )}
       </div>

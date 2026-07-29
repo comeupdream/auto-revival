@@ -72,42 +72,37 @@ export default function CurtainHero() {
       <div className="sticky top-0 h-screen overflow-hidden bg-black">
         {/* ------------------------------------------------------- The stage */}
         <div
-          className="gold-glow absolute inset-0 flex items-center justify-center"
+          className="gold-glow absolute inset-0"
           style={{
             opacity: "calc(0.3 + var(--open) * 0.7)",
             transform: "scale(calc(0.95 + var(--open) * 0.05))",
           }}
         >
-          <div className="container-page grid w-full items-center justify-items-center gap-8 py-24 lg:grid-cols-[1fr_auto_1fr] lg:gap-10">
-            <CarPhoto
-              side="left"
-              className="hidden w-full max-w-[380px] -rotate-2 justify-self-end lg:block"
-            />
+          <div className="mx-auto flex h-full w-full max-w-[1750px] flex-col items-center justify-center gap-5 px-3 pt-16 sm:gap-7 sm:px-6">
+            <BrandLogo variant="hero" />
 
-            <div className="flex max-w-xl flex-col items-center text-center">
-              <BrandLogo variant="hero" />
-              <p className="mt-7 max-w-md text-balance text-lg leading-relaxed text-muted">
-                {SHOP.tagline}
-              </p>
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-                <Link href="/book" className="btn-accent !px-8 !py-3.5 text-base">
-                  Book a detail
-                </Link>
-                <Link href="/#services" className="btn-ghost !px-8 !py-3.5 text-base">
-                  Services &amp; pricing
-                </Link>
-              </div>
+            {/* The two hero cars, side by side, carrying the stage. */}
+            <div className="grid w-full grid-cols-2 gap-3 sm:gap-6">
+              <CarPhoto
+                side="left"
+                className="h-[24vh] w-full sm:h-[36vh] lg:h-[46vh]"
+              />
+              <CarPhoto
+                side="right"
+                className="h-[24vh] w-full sm:h-[36vh] lg:h-[46vh]"
+              />
             </div>
 
-            <CarPhoto
-              side="right"
-              className="hidden w-full max-w-[380px] rotate-2 justify-self-start lg:block"
-            />
-
-            {/* On smaller screens the cars sit side-by-side under the logo. */}
-            <div className="grid w-full max-w-md grid-cols-2 gap-4 lg:hidden">
-              <CarPhoto side="left" className="-rotate-1" />
-              <CarPhoto side="right" className="rotate-1" />
+            <p className="hidden max-w-xl text-balance text-center text-lg leading-relaxed text-muted md:block">
+              {SHOP.tagline}
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Link href="/book" className="btn-accent !px-8 !py-3.5 text-base">
+                Book a detail
+              </Link>
+              <Link href="/#services" className="btn-ghost !px-8 !py-3.5 text-base">
+                Services &amp; pricing
+              </Link>
             </div>
           </div>
         </div>
