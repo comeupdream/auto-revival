@@ -11,10 +11,8 @@ export const SHOP = {
   name: "Auto Revival",
   shortName: "Auto Revival",
   tagline: "Premium auto detailing — showroom shine, brought back to life.",
-  // TODO: replace with the shop's real phone number.
-  phone: "(540) 555-0134",
-  // TODO: replace with the shop's real email address.
-  email: "bookings@revivedetail.autos",
+  phone: "(540) 705-8671",
+  email: "revivedetail13@gmail.com",
   // TODO: replace with the shop's real address / service area.
   address: "123 Main Street",
   cityLine: "Elkton, VA 22827",
