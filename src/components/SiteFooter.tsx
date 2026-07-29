@@ -19,7 +19,7 @@ export default function SiteFooter() {
         </div>
 
         <div>
-          <h3 className="text-sm font-semibold tracking-wide">Visit</h3>
+          <h3 className="text-sm font-semibold tracking-wide">Contact</h3>
           <address className="mt-3 space-y-1 text-sm not-italic leading-relaxed text-muted">
             <div>{SHOP.address}</div>
             <div>{SHOP.cityLine}</div>

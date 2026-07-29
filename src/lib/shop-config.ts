@@ -13,9 +13,10 @@ export const SHOP = {
   tagline: "Where every detail sparks a revival — mobile car detailing that comes to you.",
   phone: "(540) 705-8671",
   email: "revivedetail13@gmail.com",
-  // TODO: replace with the shop's real address / service area.
-  address: "123 Main Street",
-  cityLine: "Elkton, VA 22827",
+  // Mobile service — no storefront. These lines appear in the footer and at
+  // the bottom of emails.
+  address: "Mobile detailing — we come to you",
+  cityLine: "Serving Elkton, VA & the Shenandoah Valley",
   facebook: "https://www.facebook.com/profile.php?id=61581237587135",
   instagram: "@revivedetail",
 

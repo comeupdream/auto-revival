@@ -37,8 +37,8 @@ export default function SiteHeader({
           <Link href="/#testimonials" className="transition-colors hover:text-accent">
             Testimonials
           </Link>
-          <Link href="/#visit" className="transition-colors hover:text-accent">
-            Visit
+          <Link href="/#contact" className="transition-colors hover:text-accent">
+            Contact
           </Link>
           <a
             href={`tel:${SHOP.phone.replace(/[^\d+]/g, "")}`}

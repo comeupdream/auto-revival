@@ -271,23 +271,18 @@ export async function ShopHome() {
         </div>
       </section>
 
-      {/* --------------------------------------------------------------- Visit */}
-      <section id="visit" className="brushed relative overflow-hidden border-t border-line">
+      {/* -------------------------------------------------------------- Contact */}
+      <section id="contact" className="brushed relative overflow-hidden border-t border-line">
         <div className="container-page relative z-20 grid gap-12 py-20 sm:py-28 lg:grid-cols-2">
           <div>
-            <p className="eyebrow">Come see us</p>
-            <h2 className="mt-2 font-serif text-4xl sm:text-5xl">Visit the shop</h2>
+            <p className="eyebrow">We come to you</p>
+            <h2 className="mt-2 font-serif text-4xl sm:text-5xl">Get in touch</h2>
             <p className="mt-4 max-w-md text-muted">
-              Easy drop-off, comfortable waiting area, and a team that loves
-              talking cars. New clients are always welcome.
+              {SHOP.cityLine}. Your driveway, your office parking lot — we
+              bring the detail to the car. All we need is access to the
+              vehicle and a water spigot.
             </p>
             <div className="mt-8 space-y-4 text-sm">
-              <div>
-                <div className="text-muted">Address</div>
-                <div className="font-medium">
-                  {SHOP.address}, {SHOP.cityLine}
-                </div>
-              </div>
               <div>
                 <div className="text-muted">Phone</div>
                 <a
