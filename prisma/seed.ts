@@ -52,33 +52,6 @@ function todayISO(): string {
   }).format(new Date());
 }
 
-function addDays(iso: string, n: number): string {
-  const [y, m, d] = iso.split("-").map(Number);
-  const dt = new Date(y, m - 1, d);
-  dt.setDate(dt.getDate() + n);
-  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(
-    dt.getDate(),
-  ).padStart(2, "0")}`;
-}
-
-function weekday(iso: string): number {
-  const [y, m, d] = iso.split("-").map(Number);
-  return new Date(y, m - 1, d).getDay();
-}
-
-/** The next `count` open dates starting tomorrow. */
-function nextOpenDays(count: number): string[] {
-  const out: string[] = [];
-  let cursor = todayISO();
-  let guard = 0;
-  while (out.length < count && guard < 30) {
-    cursor = addDays(cursor, 1);
-    if (SHOP.hours[weekday(cursor)]) out.push(cursor);
-    guard++;
-  }
-  return out;
-}
-
 async function main() {
   for (const [i, s] of SERVICES.entries()) {
     await prisma.service.upsert({
@@ -94,69 +67,46 @@ async function main() {
   });
   console.log(`Seeded ${SERVICES.length} services.`);
 
-  // Personal blocked time (prisma/blocks.ts) — inserted idempotently so the
-  // owner's calendar commitments make those windows unbookable.
+  // One-time cleanup: remove any demo/sample appointments an earlier seed
+  // created (fake names with (555) phone numbers). Real bookings never match.
+  const removedDemo = await prisma.appointment.deleteMany({
+    where: {
+      customerName: {
+        in: ["Marcus Webb", "Dana Whitfield", "Priya Nair", "Sofia Romano", "Grant Bennett", "Ava Mitchell", "Daniel Cho", "Grace Bennett"],
+      },
+      customerPhone: { startsWith: "(555)" },
+      customerEmail: "",
+    },
+  });
+  if (removedDemo.count > 0) {
+    console.log(`Removed ${removedDemo.count} old demo appointments.`);
+  }
+
+  // Personal blocked time (prisma/blocks.ts) — bare date/time entries, no
+  // price or customer info. Upserted so already-imported rows are stripped
+  // down too.
   const today = todayISO();
   const upcomingBlocks = PERSONAL_BLOCKS.filter((b) => b.date >= today);
+  for (const b of upcomingBlocks) {
+    const data = {
+      serviceName: "Blocked",
+      durationMinutes: b.minutes,
+      priceCents: 0,
+      date: b.date,
+      startTime: b.time,
+      customerName: "",
+      status: "CONFIRMED",
+      source: "admin",
+    };
+    await prisma.appointment.upsert({
+      where: { id: `block-${b.date}-${b.time.replace(":", "")}` },
+      update: data,
+      create: { id: `block-${b.date}-${b.time.replace(":", "")}`, ...data },
+    });
+  }
   if (upcomingBlocks.length > 0) {
-    const res = await prisma.appointment.createMany({
-      data: upcomingBlocks.map((b) => ({
-        id: `block-${b.date}-${b.time.replace(":", "")}`,
-        serviceName: "Blocked — personal",
-        durationMinutes: b.minutes,
-        priceCents: 0,
-        date: b.date,
-        startTime: b.time,
-        customerName: b.label,
-        status: "CONFIRMED",
-        source: "admin",
-      })),
-      skipDuplicates: true,
-    });
-    console.log(
-      `Personal blocks: ${res.count} inserted, ${upcomingBlocks.length - res.count} already present.`,
-    );
+    console.log(`Synced ${upcomingBlocks.length} personal blocks.`);
   }
-
-  const count = await prisma.appointment.count();
-  if (count > 0) {
-    console.log(`Skipped demo appointments (${count} already exist).`);
-    return;
-  }
-
-  const byId = Object.fromEntries(SERVICES.map((s) => [s.id, s]));
-  const days = nextOpenDays(3);
-  const demo = [
-    { day: 0, time: "06:30", svc: "full-detail", price: DETAIL_PRICES.truck, name: "Marcus Webb", phone: "(555) 201-7788", vehicle: "2021 Ford F-150", address: "118 Oak Hill Dr, Elkton, VA" },
-    { day: 0, time: "12:30", svc: "full-detail", price: DETAIL_PRICES.sedan, name: "Dana Whitfield", phone: "(555) 332-0091", vehicle: "2018 Honda Civic", address: "42 Meadow Ln, Harrisonburg, VA" },
-    { day: 1, time: "06:30", svc: "full-detail", price: DETAIL_PRICES.suv, name: "Priya Nair", phone: "(555) 884-2310", vehicle: "2020 Toyota 4Runner", address: "301 Spring St, Elkton, VA" },
-    { day: 1, time: "12:30", svc: "polish-1", price: 39900, name: "Sofia Romano", phone: "(555) 119-6654", vehicle: "2016 Mazda MX-5", address: "77 Valley View Rd, McGaheysville, VA" },
-    { day: 2, time: "06:30", svc: "polish-2", price: 49900, name: "Grant Bennett", phone: "(555) 770-5512", vehicle: "2023 Chevrolet Corvette", address: "9 Bluff Ct, Massanutten, VA" },
-  ];
-
-  for (const d of demo) {
-    const svc = byId[d.svc];
-    const date = days[d.day];
-    if (!svc || !date) continue;
-    await prisma.appointment.create({
-      data: {
-        serviceId: svc.id,
-        serviceName: svc.name,
-        durationMinutes: svc.durationMinutes,
-        priceCents: d.price,
-        date,
-        startTime: d.time,
-        customerName: d.name,
-        customerPhone: d.phone,
-        customerEmail: "",
-        vehicle: d.vehicle,
-        serviceAddress: d.address,
-        status: "CONFIRMED",
-        source: "online",
-      },
-    });
-  }
-  console.log(`Seeded ${demo.length} demo appointments.`);
 }
 
 main()
