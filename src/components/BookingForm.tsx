@@ -533,7 +533,7 @@ export default function BookingForm({
                     >
                       <div className="min-w-0">
                         <div className="font-medium">{s.name}</div>
-                        <div className="mt-0.5 truncate text-sm text-muted">
+                        <div className="mt-0.5 text-sm leading-relaxed text-muted">
                           {s.description}
                         </div>
                       </div>
@@ -576,7 +576,7 @@ export default function BookingForm({
                         </span>
                         <div className="min-w-0">
                           <div className="font-medium">{a.name}</div>
-                          <div className="mt-0.5 truncate text-sm text-muted">
+                          <div className="mt-0.5 text-sm leading-relaxed text-muted">
                             {a.description}
                           </div>
                         </div>
