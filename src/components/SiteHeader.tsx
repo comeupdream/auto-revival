@@ -20,10 +20,12 @@ export default function SiteHeader({
       }
     >
       <div className="container-page flex h-20 items-center justify-between">
-        <Link href="/" className="flex flex-col leading-none">
+        <Link href="/" className="flex items-center gap-3">
           <BrandLogo variant="header" />
-          <span className="mt-1 text-[10px] uppercase tracking-[0.3em] text-muted">
-            Mobile Detailing
+          <span className="hidden text-[10px] uppercase leading-relaxed tracking-[0.3em] text-muted sm:block">
+            Mobile
+            <br />
+            Detailing
           </span>
         </Link>
 
