@@ -97,7 +97,7 @@ export default async function FontTryoutsPage() {
 
             <div className={`${f.className} space-y-5 px-6 py-8`}>
               <div className="text-gold-gradient text-4xl font-bold tracking-[0.12em] sm:text-5xl">
-                AUTO&nbsp;REVIVAL
+                REVIVE&nbsp;DETAIL
               </div>
               <div className="text-3xl">Showroom shine, brought back to life.</div>
               <div className="flex flex-wrap items-baseline gap-x-8 gap-y-2">

@@ -23,7 +23,7 @@ export default function SiteHeader({
         <Link href="/" className="flex flex-col leading-none">
           <BrandLogo variant="header" />
           <span className="mt-1 text-[10px] uppercase tracking-[0.3em] text-muted">
-            Auto Detailing
+            Mobile Detailing
           </span>
         </Link>
 

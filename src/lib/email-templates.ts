@@ -59,7 +59,7 @@ function shell(opts: { preheader: string; eyebrow: string; heading: string; body
     <tr><td align="center">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:540px;background:#ffffff;border:1px solid ${LINE};border-radius:18px;overflow:hidden;">
         <tr><td style="background:#0A0A0B;padding:14px 38px;">
-          <span style="font-family:Georgia,'Times New Roman',serif;color:${GOLD_BAR};font-size:17px;letter-spacing:3px;font-weight:700;">AUTO&nbsp;REVIVAL</span>
+          <span style="font-family:Georgia,'Times New Roman',serif;color:${GOLD_BAR};font-size:17px;letter-spacing:3px;font-weight:700;">REVIVE&nbsp;DETAIL</span>
         </td></tr>
         <tr><td style="background:${GOLD_BAR};height:3px;font-size:0;line-height:0;">&nbsp;</td></tr>
         <tr><td style="padding:30px 38px 6px;">

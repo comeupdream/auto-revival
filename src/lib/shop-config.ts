@@ -8,16 +8,16 @@
 export type DayHours = { open: string; close: string } | null;
 
 export const SHOP = {
-  name: "Auto Revival",
-  shortName: "Auto Revival",
-  tagline: "Premium auto detailing — showroom shine, brought back to life.",
+  name: "Revive Detail",
+  shortName: "Revive Detail",
+  tagline: "Where every detail sparks a revival — mobile car detailing that comes to you.",
   phone: "(540) 705-8671",
   email: "revivedetail13@gmail.com",
   // TODO: replace with the shop's real address / service area.
   address: "123 Main Street",
   cityLine: "Elkton, VA 22827",
   facebook: "https://www.facebook.com/profile.php?id=61581237587135",
-  instagram: "@autorevival",
+  instagram: "@revivedetail",
 
   /** IANA timezone the shop operates in. Drives "today" / past-slot logic. */
   timezone: "America/New_York",

@@ -64,8 +64,8 @@ export default function CarPhoto({
             src={candidates[idx]}
             alt={
               side === "left"
-                ? "A freshly detailed car at Auto Revival"
-                : "Showroom-shine results from Auto Revival"
+                ? "A freshly detailed car at Revive Detail"
+                : "Showroom-shine results from Revive Detail"
             }
             onError={() => setIdx((i) => i + 1)}
             className="h-full w-full object-cover"

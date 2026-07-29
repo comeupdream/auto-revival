@@ -8,7 +8,7 @@
  *
  * Env to actually send mail:
  *   RESEND_API_KEY  – from https://resend.com  → API Keys
- *   EMAIL_FROM      – a verified sender, e.g. "Auto Revival <hello@yourdomain>"
+ *   EMAIL_FROM      – a verified sender, e.g. "Revive Detail <hello@yourdomain>"
  *                     (falls back to Resend's onboarding@resend.dev test sender)
  *   OWNER_EMAIL     – where new-booking alerts go (defaults to SHOP.email)
  */

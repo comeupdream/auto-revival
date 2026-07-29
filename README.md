@@ -1,4 +1,4 @@
-# Auto Revival
+# Revive Detail
 
 A complete auto-detailing website with **online booking** and a
 password-protected **admin job book** (a live spreadsheet + calendar of every
@@ -6,7 +6,7 @@ appointment), themed in black & gold.
 
 The landing page opens with a **theater-curtain reveal**: a black curtain
 covers the screen, and scrolling down lifts the valance and draws the panels
-apart to unveil the gold Auto Revival logo flanked by two car photos.
+apart to unveil the gold Revive Detail logo flanked by two car photos.
 
 ---
 
@@ -45,7 +45,7 @@ changes**:
 | **Car photos** (the two hero shots) | `public/cars/car-left.jpg` and `public/cars/car-right.jpg` (also accepts `.jpeg` / `.png` / `.webp`, or `car-1.*` / `car-2.*`) |
 | **Logo** (black & gold) | `public/brand/logo.png` (also accepts `.webp` / `.jpg` / `.svg`) |
 
-Until the files exist, the site shows a built-in gold "AUTO REVIVAL" lockup
+Until the files exist, the site shows a built-in gold "REVIVE DETAIL" lockup
 and gold-framed "photo coming soon" placeholders in the same spots.
 
 Business details (phone, address, email, hours) live in one place:
@@ -84,7 +84,7 @@ npm run dev                 # http://localhost:3000
 
 > Local dev needs a Postgres database. Quickest options: a free
 > [Neon](https://neon.tech) dev branch, or local Postgres
-> (`postgresql://USER:PASS@localhost:5432/autorevival`).
+> (`postgresql://USER:PASS@localhost:5432/revivedetail`).
 
 Then visit:
 

@@ -8,7 +8,7 @@ export default function SiteFooter() {
       <div className="container-page relative z-20 grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4">
         <div className="lg:col-span-2">
           <div className="text-gold-gradient font-serif text-2xl font-semibold tracking-[0.14em]">
-            AUTO REVIVAL
+            REVIVE DETAIL
           </div>
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted">
             {SHOP.tagline}

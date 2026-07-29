@@ -19,7 +19,7 @@ export default async function AdminLoginPage() {
       <div className="w-full max-w-sm">
         <Link href="/" className="block text-center">
           <div className="text-gold-gradient font-serif text-2xl font-semibold tracking-[0.14em]">
-            AUTO REVIVAL
+            REVIVE DETAIL
           </div>
           <div className="mt-1 text-[11px] uppercase tracking-[0.28em] text-muted">
             Staff portal

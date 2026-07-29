@@ -1,4 +1,4 @@
-// Auto Revival — data model
+// Revive Detail — data model
 // Docs: https://pris.ly/d/prisma-schema
 //
 // Postgres (works on Render, Vercel, Neon, Supabase, etc.). Point DATABASE_URL

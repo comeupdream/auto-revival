@@ -57,7 +57,7 @@ export default async function BookPage({
         <div className="container-page flex h-20 items-center justify-between">
           <Link href="/" className="flex flex-col leading-none">
             <span className="text-gold-gradient font-serif text-lg font-semibold tracking-[0.14em]">
-              AUTO REVIVAL
+              REVIVE DETAIL
             </span>
             <span className="mt-0.5 text-[11px] uppercase tracking-[0.28em] text-muted">
               Book online

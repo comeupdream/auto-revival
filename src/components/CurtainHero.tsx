@@ -11,7 +11,7 @@ import { SHOP } from "@/lib/shop-config";
  *
  * A black curtain (two fabric panels + a top valance) covers the stage on
  * load. Scrolling down the runway lifts the valance and draws the panels
- * apart, unveiling the gold Auto Revival lockup flanked by the two car
+ * apart, unveiling the gold Revive Detail lockup flanked by the two car
  * photos. All motion is driven by the `--open` CSS custom property
  * (0 = closed → 1 = fully open) set from scroll progress, so nothing
  * re-renders while scrolling.
@@ -71,7 +71,7 @@ export default function CurtainHero() {
       style={{ height: RUNWAY, ["--open" as string]: 0, ["--pull" as string]: 0 }}
     >
       <h1 className="sr-only">
-        {SHOP.name} — Premium Auto Detailing
+        {SHOP.name} — Mobile Car Detailing
       </h1>
 
       <div className="sticky top-0 h-screen overflow-hidden bg-black">

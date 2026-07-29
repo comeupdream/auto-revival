@@ -311,7 +311,7 @@ export async function ShopHome() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Auto Revival on Facebook
+                  Revive Detail on Facebook
                 </a>
               </div>
             </div>

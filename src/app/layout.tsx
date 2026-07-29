@@ -24,20 +24,20 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_SITE_URL || "https://revivedetail.autos",
   ),
   title: {
-    default: `${SHOP.name} — Premium Auto Detailing`,
+    default: `${SHOP.name} — Mobile Car Detailing`,
     template: `%s · ${SHOP.name}`,
   },
   description: SHOP.tagline,
   openGraph: {
     type: "website",
     siteName: SHOP.name,
-    title: `${SHOP.name} — Premium Auto Detailing`,
+    title: `${SHOP.name} — Mobile Car Detailing`,
     description: SHOP.tagline,
     url: "/",
   },
   twitter: {
     card: "summary",
-    title: `${SHOP.name} — Premium Auto Detailing`,
+    title: `${SHOP.name} — Mobile Car Detailing`,
     description: SHOP.tagline,
   },
 };

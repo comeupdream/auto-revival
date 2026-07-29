@@ -30,7 +30,7 @@ export default function BrandLogo({
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={LOGO_CANDIDATES[idx]}
-        alt="Auto Revival"
+        alt="Revive Detail"
         onError={() => setIdx((i) => i + 1)}
         className={
           hero
@@ -45,7 +45,7 @@ export default function BrandLogo({
   if (!hero) {
     return (
       <span className="text-gold-gradient font-serif text-lg font-semibold tracking-[0.18em]">
-        AUTO REVIVAL
+        REVIVE DETAIL
       </span>
     );
   }
@@ -62,13 +62,13 @@ export default function BrandLogo({
       </div>
 
       <div className="text-gold-gradient mt-3 font-serif text-3xl font-bold tracking-[0.12em] sm:text-4xl lg:text-5xl">
-        AUTO&nbsp;REVIVAL
+        REVIVE&nbsp;DETAIL
       </div>
 
       <div className="mt-3 flex items-center gap-4">
         <span className="h-px w-10 bg-gradient-to-r from-transparent to-accent sm:w-16" />
         <span className="text-[10px] uppercase tracking-[0.42em] text-accent sm:text-xs">
-          Premium Auto Detailing
+          Mobile Car Detailing
         </span>
         <span className="h-px w-10 bg-gradient-to-l from-transparent to-accent sm:w-16" />
       </div>
