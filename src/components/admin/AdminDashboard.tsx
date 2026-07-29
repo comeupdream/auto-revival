@@ -261,6 +261,9 @@ export default function AdminDashboard({
                 </button>
               </>
             )}
+            <a href="/admin/fonts" className="btn-ghost !px-4 !py-2 text-sm">
+              Fonts
+            </a>
             <button onClick={signOut} className="btn-ghost !px-4 !py-2 text-sm">
               Sign out
             </button>
