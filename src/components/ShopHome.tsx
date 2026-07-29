@@ -1,5 +1,6 @@
 import Link from "next/link";
 import CurtainHero from "@/components/CurtainHero";
+import IntroReveal from "@/components/IntroReveal";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import Stars from "@/components/Stars";
@@ -60,6 +61,9 @@ export async function ShopHome() {
 
   return (
     <>
+      {/* First-visit trace-in of the RD monogram (self-dismissing). */}
+      <IntroReveal />
+
       <SiteHeader overlay />
 
       {/* Curtain hero — opens as the visitor scrolls. */}

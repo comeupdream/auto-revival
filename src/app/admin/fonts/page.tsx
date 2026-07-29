@@ -26,9 +26,9 @@ const cinzel = Cinzel({ subsets: ["latin"], weight: ["400", "600", "700"] });
 
 const CANDIDATES = [
   {
-    name: "Bodoni Moda",
-    className: bodoni.className,
-    note: "High-contrast didone — the luxury fashion-masthead look. Classical bones, razor-sharp modern edge.",
+    name: "Cinzel",
+    className: cinzel.className,
+    note: "Engraved Trajan-style caps — matches the emblem's classical gold lettering.",
     live: true,
   },
   {
@@ -50,9 +50,9 @@ const CANDIDATES = [
     live: false,
   },
   {
-    name: "Cinzel",
-    className: cinzel.className,
-    note: "Engraved Trajan-style caps — the previous font. Classic movie-poster energy.",
+    name: "Bodoni Moda",
+    className: bodoni.className,
+    note: "High-contrast didone — the luxury fashion-masthead look. The previous font.",
     live: false,
   },
 ];

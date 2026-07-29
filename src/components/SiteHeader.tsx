@@ -19,7 +19,7 @@ export default function SiteHeader({
           : "sticky top-0 z-50 border-b border-line bg-bg/85 backdrop-blur"
       }
     >
-      <div className="container-page flex h-20 items-center justify-between">
+      <div className="container-page flex h-36 items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
           <BrandLogo variant="header" />
           <span className="hidden text-[10px] uppercase leading-relaxed tracking-[0.3em] text-muted sm:block">
