@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { SHOP } from "../src/lib/shop-config";
 import { DETAIL_PRICES } from "../src/lib/vehicle";
+import { PERSONAL_BLOCKS } from "./blocks";
 
 const prisma = new PrismaClient();
 
@@ -92,6 +93,30 @@ async function main() {
     data: { active: false },
   });
   console.log(`Seeded ${SERVICES.length} services.`);
+
+  // Personal blocked time (prisma/blocks.ts) — inserted idempotently so the
+  // owner's calendar commitments make those windows unbookable.
+  const today = todayISO();
+  const upcomingBlocks = PERSONAL_BLOCKS.filter((b) => b.date >= today);
+  if (upcomingBlocks.length > 0) {
+    const res = await prisma.appointment.createMany({
+      data: upcomingBlocks.map((b) => ({
+        id: `block-${b.date}-${b.time.replace(":", "")}`,
+        serviceName: "Blocked — personal",
+        durationMinutes: b.minutes,
+        priceCents: 0,
+        date: b.date,
+        startTime: b.time,
+        customerName: b.label,
+        status: "CONFIRMED",
+        source: "admin",
+      })),
+      skipDuplicates: true,
+    });
+    console.log(
+      `Personal blocks: ${res.count} inserted, ${upcomingBlocks.length - res.count} already present.`,
+    );
+  }
 
   const count = await prisma.appointment.count();
   if (count > 0) {
