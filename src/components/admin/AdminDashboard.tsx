@@ -15,6 +15,7 @@ import {
 } from "@/lib/format";
 import { AdminCalendar } from "@/components/admin/AdminCalendar";
 import { AdminPortfolio } from "@/components/admin/AdminPortfolio";
+import { AdminTestimonials } from "@/components/admin/AdminTestimonials";
 
 export type AdminService = {
   id: string;
@@ -75,7 +76,9 @@ export default function AdminDashboard({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [addOpen, setAddOpen] = useState(false);
-  const [view, setView] = useState<"table" | "calendar" | "portfolio">("table");
+  const [view, setView] = useState<"table" | "calendar" | "portfolio" | "testimonials">(
+    "table",
+  );
 
   const fetchList = useCallback(async () => {
     setLoading(true);
@@ -217,17 +220,23 @@ export default function AdminDashboard({
         <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-3 px-5 py-4">
           <div>
             <h1 className="font-serif text-2xl leading-none">
-              {view === "portfolio" ? "Our Work" : "Job book"}
+              {view === "portfolio"
+                ? "Our Work"
+                : view === "testimonials"
+                  ? "Testimonials"
+                  : "Job book"}
             </h1>
             <p className="mt-1 text-xs text-muted">
               {view === "portfolio"
                 ? "Photos shown on the public Our Work page"
-                : new Date(today + "T00:00:00").toLocaleDateString("en-US", {
-                    weekday: "long",
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
+                : view === "testimonials"
+                  ? "Approve customer reviews before they appear on the site"
+                  : new Date(today + "T00:00:00").toLocaleDateString("en-US", {
+                      weekday: "long",
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -250,8 +259,14 @@ export default function AdminDashboard({
               >
                 Photos
               </button>
+              <button
+                onClick={() => setView("testimonials")}
+                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${view === "testimonials" ? "bg-accent text-black" : "text-muted hover:text-ink"}`}
+              >
+                Testimonials
+              </button>
             </div>
-            {view !== "portfolio" && (
+            {(view === "table" || view === "calendar") && (
               <>
                 <button onClick={() => setAddOpen(true)} className="btn-accent !px-4 !py-2 text-sm">
                   + New appointment
@@ -272,7 +287,9 @@ export default function AdminDashboard({
       </header>
 
       <main className="mx-auto max-w-[1400px] px-5 py-6">
-        {view === "portfolio" ? (
+        {view === "testimonials" ? (
+          <AdminTestimonials />
+        ) : view === "portfolio" ? (
           <AdminPortfolio />
         ) : view === "calendar" ? (
           <AdminCalendar today={today} />

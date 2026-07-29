@@ -34,6 +34,9 @@ export default function SiteHeader({
           <Link href="/portfolio" className="transition-colors hover:text-accent">
             Our Work
           </Link>
+          <Link href="/#testimonials" className="transition-colors hover:text-accent">
+            Testimonials
+          </Link>
           <Link href="/#visit" className="transition-colors hover:text-accent">
             Visit
           </Link>

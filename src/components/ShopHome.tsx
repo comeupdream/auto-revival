@@ -2,6 +2,8 @@ import Link from "next/link";
 import CurtainHero from "@/components/CurtainHero";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
+import Stars from "@/components/Stars";
+import TestimonialForm from "@/components/TestimonialForm";
 import { formatDuration, formatPrice } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { SHOP, hoursForDisplay } from "@/lib/shop-config";
@@ -35,9 +37,24 @@ async function getServicesByCategory(): Promise<[string, ServiceCard[]][]> {
   return Array.from(groups.entries());
 }
 
-/** The full landing page: curtain reveal, services, standards, and visit info. */
+/** The full landing page: curtain reveal, services, standards, gallery,
+ *  testimonials, and visit info. */
 export async function ShopHome() {
-  const categories = await getServicesByCategory();
+  const [categories, photos, testimonials] = await Promise.all([
+    getServicesByCategory(),
+    prisma.portfolioImage.findMany({
+      where: { published: true },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+      take: 8,
+      select: { id: true, caption: true, alt: true },
+    }),
+    prisma.testimonial.findMany({
+      where: { approved: true },
+      orderBy: { createdAt: "desc" },
+      take: 9,
+      select: { id: true, name: true, vehicle: true, rating: true, text: true },
+    }),
+  ]);
   const hours = hoursForDisplay();
 
   return (
@@ -131,6 +148,81 @@ export async function ShopHome() {
               <p className="mt-3 leading-relaxed text-muted">{f.d}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------ Our Work */}
+      {photos.length > 0 && (
+        <section id="work" className="relative overflow-hidden border-t border-line bg-bg">
+          <div className="container-page py-20 sm:py-28">
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="eyebrow">Fresh out of the bay</p>
+              <h2 className="mt-2 font-serif text-4xl sm:text-5xl">Our Work</h2>
+            </div>
+            <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+              {photos.map((img) => (
+                <Link
+                  key={img.id}
+                  href="/portfolio"
+                  className="group overflow-hidden rounded-xl2 border border-line bg-surface"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`/api/portfolio/${img.id}`}
+                    alt={img.alt || img.caption || `Detail by ${SHOP.name}`}
+                    loading="lazy"
+                    className="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                </Link>
+              ))}
+            </div>
+            <div className="mt-8 text-center">
+              <Link href="/portfolio" className="btn-ghost !px-8 !py-3">
+                See all our work →
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* -------------------------------------------------------- Testimonials */}
+      <section id="testimonials" className="brushed relative overflow-hidden border-t border-line">
+        <div className="container-page py-20 sm:py-28">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="eyebrow">Testimonials</p>
+            <h2 className="mt-2 font-serif text-4xl sm:text-5xl">
+              What our clients say
+            </h2>
+          </div>
+
+          {testimonials.length === 0 ? (
+            <p className="mx-auto mt-8 max-w-md text-center text-muted">
+              Fresh reviews are on the way — be the first to leave one below.
+            </p>
+          ) : (
+            <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+              {testimonials.map((t) => (
+                <figure key={t.id} className="card flex flex-col p-6">
+                  <Stars rating={t.rating} />
+                  <blockquote className="mt-4 flex-1 text-sm leading-relaxed text-ink/90">
+                    &ldquo;{t.text}&rdquo;
+                  </blockquote>
+                  <figcaption className="mt-5 border-t border-line pt-4">
+                    <div className="font-medium">{t.name}</div>
+                    {t.vehicle && (
+                      <div className="mt-0.5 text-xs uppercase tracking-wider text-muted">
+                        {t.vehicle}
+                      </div>
+                    )}
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-14">
+            <TestimonialForm />
+          </div>
         </div>
       </section>
 

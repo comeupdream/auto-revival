@@ -62,6 +62,20 @@ model Appointment {
   @@index([status])
 }
 
+/// A customer review. Submitted from the public Testimonials section and
+/// hidden until staff approves it in the admin job book.
+model Testimonial {
+  id        String   @id @default(cuid())
+  name      String
+  vehicle   String   @default("") // e.g. "2019 BMW M3"
+  rating    Int      @default(5) // 1–5 stars
+  text      String
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([approved, createdAt])
+}
+
 /// A photo for the public gallery (before / after shots). The image bytes live
 /// in the DB so they survive on hosts with an ephemeral filesystem (e.g.
 /// Render) without any external object storage. Images are resized
