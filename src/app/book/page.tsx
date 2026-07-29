@@ -74,8 +74,8 @@ export default async function BookPage({
           <p className="eyebrow">Online booking</p>
           <h1 className="mt-2 font-serif text-4xl sm:text-5xl">Book your detail</h1>
           <p className="mt-3 text-muted">
-            Pick a service, choose a time that works, tell us about your
-            vehicle — done in about a minute.
+            Tell us about your vehicle, pick a service priced for it, and
+            choose a time — done in about a minute.
           </p>
         </div>
 

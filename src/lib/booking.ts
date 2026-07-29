@@ -5,6 +5,7 @@ import { clientBookingConfirmation, ownerNewBooking, type EmailAppointment } fro
 import { prisma } from "./prisma";
 import { SHOP, shopTodayISO } from "./shop-config";
 import { addDaysISO, isValidDateISO, isValidTime } from "./time";
+import { adjustedPriceCents, classifyVehicle } from "./vehicle";
 
 /** Existing appointments that occupy the calendar on a given date. */
 export async function getBusyBlocks(dateISO: string): Promise<BusyBlock[]> {
@@ -80,18 +81,22 @@ export async function createBooking(
       code: 409,
     };
 
+  // Listed prices are sedan rates; larger vehicles carry a multiplier.
+  const vehicle = input.vehicle?.trim() ?? "";
+  const priceCents = adjustedPriceCents(service.priceCents, classifyVehicle(vehicle));
+
   const appt = await prisma.appointment.create({
     data: {
       serviceId: service.id,
       serviceName: service.name,
       durationMinutes: service.durationMinutes,
-      priceCents: service.priceCents,
+      priceCents,
       date: input.date,
       startTime: input.startTime,
       customerName: name,
       customerEmail: input.customerEmail?.trim() ?? "",
       customerPhone: input.customerPhone?.trim() ?? "",
-      vehicle: input.vehicle?.trim() ?? "",
+      vehicle,
       notes: input.notes?.trim() ?? "",
       status: "CONFIRMED",
       source: input.source ?? "online",

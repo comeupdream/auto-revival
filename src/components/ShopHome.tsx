@@ -71,10 +71,10 @@ export async function ShopHome() {
             <p className="eyebrow">The menu</p>
             <h2 className="mt-2 font-serif text-4xl sm:text-5xl">Services &amp; Pricing</h2>
             <p className="mt-4 text-muted">
-              Every detail starts with a walk-around. Listed prices are a starting
-              point for average-condition vehicles — heavy soiling, pet hair, and
-              oversized vehicles may run higher. We&apos;ll always confirm before
-              we start.
+              Every detail starts with a walk-around. Listed prices are
+              car/sedan rates — SUVs and trucks adjust automatically when you
+              book, and heavy soiling or pet hair may run higher. We&apos;ll
+              always confirm before we start.
             </p>
           </div>
 
@@ -107,6 +107,7 @@ export async function ShopHome() {
                       </div>
                       <div className="flex shrink-0 flex-col items-end gap-1">
                         <span className="font-medium tabular-nums text-ink">
+                          <span className="mr-1 text-xs font-normal text-muted">from</span>
                           {formatPrice(s.priceCents)}
                         </span>
                         <Link

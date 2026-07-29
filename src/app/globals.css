@@ -200,21 +200,22 @@
   }
 }
 
-/* Wavy leading edges so the closed curtains don't meet in a ruler-straight
-   line. The masks scale with the panel; drop-shadow follows the wave. */
+/* Leading edges: near-vertical with a subtle, slow drift — the way a real
+   drape's edge hangs. No scallops, no ruler line. The masks scale with the
+   panel; the soft gold glow follows the edge. */
 .curtain-panel-left {
-  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path d='M0,0 H96 C90,7 97,12 91,20 S97,32 90,40 C85,47 98,53 92,61 S96,74 89,82 C85,89 97,94 93,100 H0 Z' fill='black'/></svg>");
-  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path d='M0,0 H96 C90,7 97,12 91,20 S97,32 90,40 C85,47 98,53 92,61 S96,74 89,82 C85,89 97,94 93,100 H0 Z' fill='black'/></svg>");
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path d='M0,0 H97.5 C96.6,10 98.2,22 97,34 C96.2,46 98,58 97.2,70 C96.6,80 98.1,90 97.4,100 H0 Z' fill='black'/></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path d='M0,0 H97.5 C96.6,10 98.2,22 97,34 C96.2,46 98,58 97.2,70 C96.6,80 98.1,90 97.4,100 H0 Z' fill='black'/></svg>");
   -webkit-mask-size: 100% 100%;
   mask-size: 100% 100%;
-  filter: drop-shadow(0 0 16px rgba(212, 175, 55, 0.28));
+  filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.22));
 }
 .curtain-panel-right {
-  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path d='M100,0 H4 C10,7 3,12 9,20 S3,32 10,40 C15,47 2,53 8,61 S4,74 11,82 C15,89 3,94 7,100 H100 Z' fill='black'/></svg>");
-  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path d='M100,0 H4 C10,7 3,12 9,20 S3,32 10,40 C15,47 2,53 8,61 S4,74 11,82 C15,89 3,94 7,100 H100 Z' fill='black'/></svg>");
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path d='M100,0 H2.5 C3.4,10 1.8,22 3,34 C3.8,46 2,58 2.8,70 C3.4,80 1.9,90 2.6,100 H100 Z' fill='black'/></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path d='M100,0 H2.5 C3.4,10 1.8,22 3,34 C3.8,46 2,58 2.8,70 C3.4,80 1.9,90 2.6,100 H100 Z' fill='black'/></svg>");
   -webkit-mask-size: 100% 100%;
   mask-size: 100% 100%;
-  filter: drop-shadow(0 0 16px rgba(212, 175, 55, 0.28));
+  filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.22));
 }
 
 /* Thin gold braid running down a panel's leading edge. */

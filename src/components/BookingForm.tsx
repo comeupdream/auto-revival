@@ -3,6 +3,12 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatDateLong, formatDuration, formatPrice, formatTime12 } from "@/lib/format";
+import {
+  VEHICLE_CLASS_LABELS,
+  VEHICLE_MAKES,
+  adjustedPriceCents,
+  classifyVehicle,
+} from "@/lib/vehicle";
 
 export type BookingService = {
   id: string;
@@ -23,7 +29,14 @@ type Props = {
 
 type Step = 1 | 2 | 3;
 
-const STEP_LABELS = ["Service", "Date & time", "Your details"];
+const STEP_LABELS = ["Your vehicle", "Service", "Date & time"];
+
+const YEARS = (() => {
+  const max = new Date().getFullYear() + 1;
+  const out: string[] = [];
+  for (let y = max; y >= 1960; y--) out.push(String(y));
+  return out;
+})();
 
 export default function BookingForm({
   services,
@@ -36,7 +49,7 @@ export default function BookingForm({
     ? initialServiceId
     : "";
 
-  const [step, setStep] = useState<Step>(validInitial ? 2 : 1);
+  const [step, setStep] = useState<Step>(1);
   const [serviceId, setServiceId] = useState(validInitial);
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
@@ -45,13 +58,10 @@ export default function BookingForm({
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [slotError, setSlotError] = useState("");
 
-  const [form, setForm] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    vehicle: "",
-    notes: "",
-  });
+  const [vYear, setVYear] = useState("");
+  const [vMake, setVMake] = useState("");
+  const [vModel, setVModel] = useState("");
+  const [form, setForm] = useState({ name: "", phone: "", email: "", notes: "" });
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [confirmed, setConfirmed] = useState<null | {
@@ -60,7 +70,16 @@ export default function BookingForm({
     time: string;
     name: string;
     vehicle: string;
+    priceCents: number;
   }>(null);
+
+  // The vehicle string drives size-class pricing everywhere below.
+  const vehicleStr = [vYear, vMake === "Other" ? "" : vMake, vModel]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+  const vClass = classifyVehicle(vehicleStr);
+  const priceFor = (s: BookingService) => adjustedPriceCents(s.priceCents, vClass);
 
   const service = useMemo(
     () => services.find((s) => s.id === serviceId) ?? null,
@@ -111,13 +130,14 @@ export default function BookingForm({
     setServiceId(id);
     setDate("");
     setTime("");
-    setStep(2);
+    setStep(3);
   }
 
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim());
+  const canContinueDetails = Boolean(form.name.trim() && emailOk);
 
   async function submit() {
-    if (!service || !date || !time || !form.name.trim() || !emailOk) return;
+    if (!service || !date || !time || !canContinueDetails) return;
     setSubmitting(true);
     setSubmitError("");
     try {
@@ -131,7 +151,7 @@ export default function BookingForm({
           customerName: form.name,
           customerPhone: form.phone,
           customerEmail: form.email,
-          vehicle: form.vehicle,
+          vehicle: vehicleStr,
           notes: form.notes,
         }),
       });
@@ -145,7 +165,6 @@ export default function BookingForm({
           const r = await fetch(`/api/availability?date=${date}&serviceId=${service.id}`);
           const d = await r.json();
           setSlots(Array.isArray(d.slots) ? d.slots : []);
-          setStep(2);
         }
         return;
       }
@@ -154,7 +173,8 @@ export default function BookingForm({
         date,
         time,
         name: form.name.trim(),
-        vehicle: form.vehicle.trim(),
+        vehicle: vehicleStr,
+        priceCents: priceFor(service),
       });
     } catch {
       setSubmitError("Network error. Please try again.");
@@ -181,6 +201,7 @@ export default function BookingForm({
           {confirmed.vehicle && <Row label="Vehicle" value={confirmed.vehicle} />}
           <Row label="Date" value={formatDateLong(confirmed.date)} />
           <Row label="Drop-off" value={formatTime12(confirmed.time)} />
+          <Row label="Price" value={formatPrice(confirmed.priceCents)} />
         </div>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link href="/" className="btn-ghost">
@@ -193,7 +214,10 @@ export default function BookingForm({
               setServiceId("");
               setDate("");
               setTime("");
-              setForm({ name: "", phone: "", email: "", vehicle: "", notes: "" });
+              setVYear("");
+              setVMake("");
+              setVModel("");
+              setForm({ name: "", phone: "", email: "", notes: "" });
               setStep(1);
             }}
           >
@@ -204,8 +228,8 @@ export default function BookingForm({
     );
   }
 
-  const canContinueDate = Boolean(date && time);
-  const canSubmit = Boolean(date && time && form.name.trim() && emailOk) && !submitting;
+  const canSubmit = Boolean(date && time && canContinueDetails) && !submitting;
+  const hasVehicleInfo = Boolean(vehicleStr);
 
   return (
     <div className="card overflow-hidden">
@@ -242,9 +266,184 @@ export default function BookingForm({
       </ol>
 
       <div className="p-6 sm:p-8">
-        {/* ----------------------------------------------------- Step 1: Service */}
+        {/* ---------------------------------------- Step 1: Vehicle & details */}
         {step === 1 && (
+          <div className="space-y-6">
+            <div>
+              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-accent">
+                Your vehicle
+              </h3>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div>
+                  <label className="field-label" htmlFor="v-year">
+                    Year
+                  </label>
+                  <select
+                    id="v-year"
+                    className="field-input"
+                    value={vYear}
+                    onChange={(e) => setVYear(e.target.value)}
+                  >
+                    <option value="">Select…</option>
+                    {YEARS.map((y) => (
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="field-label" htmlFor="v-make">
+                    Make
+                  </label>
+                  <select
+                    id="v-make"
+                    className="field-input"
+                    value={vMake}
+                    onChange={(e) => setVMake(e.target.value)}
+                  >
+                    <option value="">Select…</option>
+                    {VEHICLE_MAKES.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="field-label" htmlFor="v-model">
+                    Model
+                  </label>
+                  <input
+                    id="v-model"
+                    className="field-input"
+                    value={vModel}
+                    onChange={(e) => setVModel(e.target.value)}
+                    placeholder="M3, F-150, CR-V…"
+                  />
+                </div>
+              </div>
+              <p className="mt-2 text-xs text-muted">
+                {hasVehicleInfo ? (
+                  <>
+                    Priced as <span className="font-medium text-accent">{VEHICLE_CLASS_LABELS[vClass]}</span>
+                    {vClass !== "sedan" &&
+                      " — larger vehicles take more time and product, so prices adjust"}
+                    .
+                  </>
+                ) : (
+                  "Listed prices are car/sedan rates — trucks and SUVs adjust automatically."
+                )}
+              </p>
+            </div>
+
+            <div>
+              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-accent">
+                Your details
+              </h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <label className="field-label" htmlFor="name">
+                    Full name <span className="text-accent">*</span>
+                  </label>
+                  <input
+                    id="name"
+                    className="field-input"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    placeholder="Jamie Rivera"
+                    autoComplete="name"
+                  />
+                </div>
+                <div>
+                  <label className="field-label" htmlFor="phone">
+                    Phone
+                  </label>
+                  <input
+                    id="phone"
+                    className="field-input"
+                    value={form.phone}
+                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                    placeholder="(555) 123-4567"
+                    autoComplete="tel"
+                    inputMode="tel"
+                  />
+                </div>
+                <div>
+                  <label className="field-label" htmlFor="email">
+                    Email <span className="text-accent">*</span>
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    className="field-input"
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    placeholder="you@email.com"
+                    autoComplete="email"
+                    required
+                    aria-invalid={form.email.length > 0 && !emailOk}
+                  />
+                  {form.email.length > 0 && !emailOk && (
+                    <p className="mt-1 text-xs text-accent">Enter a valid email address.</p>
+                  )}
+                  <p className="mt-1 text-xs text-muted">
+                    We&apos;ll send your confirmation and a reminder here.
+                  </p>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="field-label" htmlFor="notes">
+                    Anything we should know? (optional)
+                  </label>
+                  <textarea
+                    id="notes"
+                    className="field-input min-h-20 resize-y"
+                    value={form.notes}
+                    onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                    placeholder="Heavy pet hair in the back seats, water spots on the hood…"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end pt-2">
+              <button
+                onClick={() => setStep(2)}
+                disabled={!canContinueDetails}
+                className="btn-accent"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ----------------------------------------------------- Step 2: Service */}
+        {step === 2 && (
           <div className="space-y-8">
+            <div className="rounded-xl2 border border-line bg-bg/50 px-4 py-3 text-sm">
+              {hasVehicleInfo ? (
+                <>
+                  Prices shown for your{" "}
+                  <span className="font-medium text-ink">{vehicleStr}</span>{" "}
+                  <span className="text-muted">
+                    ({VEHICLE_CLASS_LABELS[vClass]} rates)
+                  </span>
+                </>
+              ) : (
+                <span className="text-muted">
+                  Showing car/sedan rates —{" "}
+                  <button
+                    onClick={() => setStep(1)}
+                    className="font-medium text-accent hover:underline"
+                  >
+                    add your vehicle
+                  </button>{" "}
+                  for exact pricing.
+                </span>
+              )}
+            </div>
+
             {grouped.map(([category, items]) => (
               <div key={category}>
                 <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-accent">
@@ -255,7 +454,11 @@ export default function BookingForm({
                     <button
                       key={s.id}
                       onClick={() => pickService(s.id)}
-                      className="group flex items-center justify-between gap-4 rounded-xl border border-line bg-bg/40 p-4 text-left transition-all hover:border-accent/50 hover:shadow-sm"
+                      className={`group flex items-center justify-between gap-4 rounded-xl border p-4 text-left transition-all hover:border-accent/50 hover:shadow-sm ${
+                        s.id === serviceId
+                          ? "border-accent bg-accent/5"
+                          : "border-line bg-bg/40"
+                      }`}
                     >
                       <div className="min-w-0">
                         <div className="font-medium">{s.name}</div>
@@ -265,7 +468,7 @@ export default function BookingForm({
                       </div>
                       <div className="flex shrink-0 flex-col items-end">
                         <span className="font-medium tabular-nums">
-                          {formatPrice(s.priceCents)}
+                          {formatPrice(priceFor(s))}
                         </span>
                         <span className="text-xs text-muted">
                           {formatDuration(s.durationMinutes)}
@@ -276,16 +479,33 @@ export default function BookingForm({
                 </div>
               </div>
             ))}
+
+            <div className="flex items-center justify-between pt-2">
+              <button onClick={() => setStep(1)} className="btn-ghost">
+                ← Back
+              </button>
+            </div>
           </div>
         )}
 
-        {/* ------------------------------------------------ Step 2: Date & time */}
-        {step === 2 && service && (
+        {/* ------------------------------------------------ Step 3: Date & time */}
+        {step === 3 && service && (
           <div className="space-y-6">
-            <SelectedServiceBar
-              service={service}
-              onChange={() => setStep(1)}
-            />
+            <div className="flex items-center justify-between gap-4 rounded-xl2 border border-line bg-bg/50 p-4">
+              <div>
+                <div className="font-medium">{service.name}</div>
+                <div className="text-sm text-muted">
+                  {formatDuration(service.durationMinutes)} · {formatPrice(priceFor(service))}
+                  {hasVehicleInfo && <> · {vehicleStr}</>}
+                </div>
+              </div>
+              <button
+                onClick={() => setStep(2)}
+                className="text-xs font-medium text-accent hover:underline"
+              >
+                Change
+              </button>
+            </div>
 
             <div>
               <label className="field-label" htmlFor="date">
@@ -360,115 +580,6 @@ export default function BookingForm({
               </div>
             )}
 
-            <div className="flex items-center justify-between pt-2">
-              <button onClick={() => setStep(1)} className="btn-ghost">
-                ← Back
-              </button>
-              <button
-                onClick={() => setStep(3)}
-                disabled={!canContinueDate}
-                className="btn-accent"
-              >
-                Continue
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* --------------------------------------------------- Step 3: Details */}
-        {step === 3 && service && (
-          <div className="space-y-6">
-            <div className="rounded-xl2 border border-line bg-bg/50 p-5">
-              <div className="text-sm text-muted">You&apos;re booking</div>
-              <div className="mt-1 font-serif text-xl">{service.name}</div>
-              <div className="mt-1 text-sm text-muted">
-                {formatDateLong(date)} at {formatTime12(time)} ·{" "}
-                {formatDuration(service.durationMinutes)} · {formatPrice(service.priceCents)}
-              </div>
-              <button
-                onClick={() => setStep(2)}
-                className="mt-2 text-xs font-medium text-accent hover:underline"
-              >
-                Change date or time
-              </button>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="sm:col-span-2">
-                <label className="field-label" htmlFor="name">
-                  Full name <span className="text-accent">*</span>
-                </label>
-                <input
-                  id="name"
-                  className="field-input"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="Jamie Rivera"
-                  autoComplete="name"
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="field-label" htmlFor="vehicle">
-                  Vehicle (year, make &amp; model)
-                </label>
-                <input
-                  id="vehicle"
-                  className="field-input"
-                  value={form.vehicle}
-                  onChange={(e) => setForm({ ...form, vehicle: e.target.value })}
-                  placeholder="2019 BMW M3"
-                />
-              </div>
-              <div>
-                <label className="field-label" htmlFor="phone">
-                  Phone
-                </label>
-                <input
-                  id="phone"
-                  className="field-input"
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  placeholder="(555) 123-4567"
-                  autoComplete="tel"
-                  inputMode="tel"
-                />
-              </div>
-              <div>
-                <label className="field-label" htmlFor="email">
-                  Email <span className="text-accent">*</span>
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  className="field-input"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  placeholder="you@email.com"
-                  autoComplete="email"
-                  required
-                  aria-invalid={form.email.length > 0 && !emailOk}
-                />
-                {form.email.length > 0 && !emailOk && (
-                  <p className="mt-1 text-xs text-accent">Enter a valid email address.</p>
-                )}
-                <p className="mt-1 text-xs text-muted">
-                  We&apos;ll send your confirmation and a reminder here.
-                </p>
-              </div>
-              <div className="sm:col-span-2">
-                <label className="field-label" htmlFor="notes">
-                  Anything we should know? (optional)
-                </label>
-                <textarea
-                  id="notes"
-                  className="field-input min-h-20 resize-y"
-                  value={form.notes}
-                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                  placeholder="Heavy pet hair in the back seats, water spots on the hood…"
-                />
-              </div>
-            </div>
-
             {submitError && (
               <p className="rounded-lg bg-accent/5 px-4 py-3 text-sm text-accent">
                 {submitError}
@@ -495,28 +606,6 @@ function Row({ label, value }: { label: string; value: string }) {
     <div className="flex justify-between gap-4">
       <span className="text-muted">{label}</span>
       <span className="text-right font-medium">{value}</span>
-    </div>
-  );
-}
-
-function SelectedServiceBar({
-  service,
-  onChange,
-}: {
-  service: BookingService;
-  onChange: () => void;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-4 rounded-xl2 border border-line bg-bg/50 p-4">
-      <div>
-        <div className="font-medium">{service.name}</div>
-        <div className="text-sm text-muted">
-          {formatDuration(service.durationMinutes)} · {formatPrice(service.priceCents)}
-        </div>
-      </div>
-      <button onClick={onChange} className="text-xs font-medium text-accent hover:underline">
-        Change
-      </button>
     </div>
   );
 }
