@@ -20,7 +20,7 @@ const sans = Jost({
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "https://autorevival.co",
+    process.env.NEXT_PUBLIC_SITE_URL || "https://auto-revival-1.onrender.com",
   ),
   title: {
     default: `${SHOP.name} — Premium Auto Detailing`,

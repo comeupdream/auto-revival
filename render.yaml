@@ -30,7 +30,7 @@ services:
         value: "22"
       # Public site URL — links in emails + Open Graph metadata.
       - key: NEXT_PUBLIC_SITE_URL
-        value: "https://autorevival.co"
+        value: "https://auto-revival-1.onrender.com"
       # Email notifications (optional). Set these in the Render dashboard once
       # your Resend domain is verified.
       - key: RESEND_API_KEY
