@@ -9,10 +9,9 @@ import { RD_PATH, RD_VIEWBOX } from "@/components/rd-path";
  * metallic gold, a sheen sweeps across, the wordmark rises — then the whole
  * thing dissolves into the homepage.
  *
- * Plays once per browser session (sessionStorage), skips entirely for
+ * Plays on every load of the homepage; skips entirely for
  * prefers-reduced-motion, and any click (or the Skip button) dismisses it.
  */
-const SEEN_KEY = "rd-intro-seen";
 const AUTO_LEAVE_MS = 3600;
 const FADE_MS = 750;
 
@@ -20,16 +19,7 @@ export default function IntroReveal() {
   const [phase, setPhase] = useState<"show" | "leaving" | "gone">("show");
 
   useEffect(() => {
-    try {
-      if (sessionStorage.getItem(SEEN_KEY)) {
-        setPhase("gone");
-        return;
-      }
-    } catch {
-      /* storage unavailable — just play */
-    }
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      markSeen();
       setPhase("gone");
       return;
     }
@@ -48,16 +38,7 @@ export default function IntroReveal() {
     };
   }, [phase]);
 
-  function markSeen() {
-    try {
-      sessionStorage.setItem(SEEN_KEY, "1");
-    } catch {
-      /* ignore */
-    }
-  }
-
   function leave() {
-    markSeen();
     setPhase((p) => {
       if (p !== "show") return p;
       window.setTimeout(() => setPhase("gone"), FADE_MS);
