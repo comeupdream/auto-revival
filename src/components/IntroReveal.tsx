@@ -13,7 +13,7 @@ import { RD_PATH, RD_VIEWBOX } from "@/components/rd-path";
  * prefers-reduced-motion, and any click (or the Skip button) dismisses it.
  */
 const SEEN_KEY = "rd-intro-seen";
-const AUTO_LEAVE_MS = 3200;
+const AUTO_LEAVE_MS = 3600;
 const FADE_MS = 750;
 
 export default function IntroReveal() {
@@ -91,12 +91,31 @@ export default function IntroReveal() {
           78% { opacity: 1; }
           100% { opacity: 0.65; }
         }
+        @keyframes introGlint { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+        @keyframes introGlintIn { to { opacity: 1; } }
+        @keyframes introGlowPulse {
+          from { filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.3)); }
+          to { filter: drop-shadow(0 0 24px rgba(212, 175, 55, 0.6)); }
+        }
         .intro-draw {
           stroke-dasharray: 1;
           stroke-dashoffset: 1;
           animation: introDraw 1.8s cubic-bezier(0.65, 0, 0.35, 1) 0.15s forwards;
         }
-        .intro-fill { opacity: 0; animation: introFill 0.6s ease-out 1.6s forwards; }
+        .intro-fill {
+          opacity: 0;
+          animation:
+            introFill 0.6s ease-out 1.6s forwards,
+            introGlowPulse 2.4s ease-in-out 2.3s infinite alternate;
+        }
+        .intro-glint {
+          opacity: 0;
+          stroke-dasharray: 0.03 0.97;
+          stroke-dashoffset: 1;
+          animation:
+            introGlintIn 0.5s ease 2.25s forwards,
+            introGlint 3s linear 2.25s infinite;
+        }
         .intro-sheen { animation: introSheen 0.9s cubic-bezier(0.4, 0, 0.2, 1) 2.1s forwards; }
         .intro-word { opacity: 0; animation: introWord 0.8s cubic-bezier(0.16, 1, 0.3, 1) 1.95s forwards; }
         .intro-bloom { opacity: 0; animation: introBloom 2.7s ease forwards; }
@@ -126,6 +145,8 @@ export default function IntroReveal() {
           stroke="#d4af37"
           strokeWidth={7}
           opacity={0.35}
+          strokeLinecap="round"
+          strokeLinejoin="round"
           style={{ filter: "blur(6px)" }}
           className="intro-draw"
         />
@@ -137,10 +158,23 @@ export default function IntroReveal() {
           stroke="url(#rdGold)"
           strokeWidth={2.5}
           strokeLinecap="round"
+          strokeLinejoin="round"
           className="intro-draw"
         />
-        {/* the letters flood with gold */}
+        {/* the letters flood with gold (with a breathing glow) */}
         <path d={RD_PATH} fill="url(#rdGold)" fillRule="evenodd" className="intro-fill" />
+        {/* glisten: a bead of light endlessly circling the outline */}
+        <path
+          d={RD_PATH}
+          pathLength={1}
+          fill="none"
+          stroke="#fff3c4"
+          strokeWidth={4}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ filter: "blur(0.6px)" }}
+          className="intro-glint"
+        />
         {/* sheen sweep across the finished letters */}
         <g clipPath="url(#rdClip)">
           <rect
