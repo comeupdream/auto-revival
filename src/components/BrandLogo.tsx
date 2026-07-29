@@ -35,7 +35,7 @@ export default function BrandLogo({
         className={
           hero
             ? "w-[min(44vw,260px)] drop-shadow-[0_10px_44px_rgba(0,0,0,0.85)]"
-            : "h-9 w-auto"
+            : "h-11 w-auto self-start"
         }
       />
     );
