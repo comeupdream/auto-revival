@@ -46,7 +46,7 @@ function firstName(name: string): string {
 }
 
 function siteUrl(): string {
-  return (process.env.NEXT_PUBLIC_SITE_URL || "https://auto-revival-1.onrender.com").replace(/\/$/, "");
+  return (process.env.NEXT_PUBLIC_SITE_URL || "https://revivedetail.autos").replace(/\/$/, "");
 }
 
 /** Branded shell around a message body (raw, already-escaped HTML). */
