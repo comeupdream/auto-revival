@@ -133,25 +133,88 @@
    src/components/CurtainHero.tsx.
    =========================================================================== */
 
-/* Vertical fabric folds: alternating dark bands with soft highlights. */
+/* Black silk drape. Three fold layers with different periods and slightly
+   different angles interfere with each other, so the ripples read as
+   irregular fabric rather than a uniform corduroy repeat. */
 .curtain-fabric {
   background-color: #070708;
   background-image:
     linear-gradient(
       180deg,
-      rgba(0, 0, 0, 0.62) 0%,
-      rgba(0, 0, 0, 0.12) 22%,
+      rgba(0, 0, 0, 0.6) 0%,
+      rgba(0, 0, 0, 0.12) 20%,
       rgba(0, 0, 0, 0) 45%,
-      rgba(0, 0, 0, 0.4) 100%
+      rgba(0, 0, 0, 0.42) 100%
+    ),
+    repeating-linear-gradient(
+      88deg,
+      #050506 0px,
+      #18181b 34px,
+      #26262b 52px,
+      #101012 84px,
+      #050506 118px
+    ),
+    repeating-linear-gradient(
+      93deg,
+      rgba(255, 255, 255, 0) 0px,
+      rgba(255, 255, 255, 0.05) 42px,
+      rgba(0, 0, 0, 0.42) 96px,
+      rgba(255, 255, 255, 0.03) 150px,
+      rgba(255, 255, 255, 0) 205px
     ),
     repeating-linear-gradient(
       90deg,
-      #060607 0px,
-      #131315 26px,
-      #212124 52px,
-      #131315 78px,
-      #060607 104px
+      rgba(255, 255, 255, 0.04) 0px,
+      rgba(0, 0, 0, 0.3) 21px,
+      rgba(255, 255, 255, 0) 47px
     );
+}
+
+/* A soft band of light that drifts across the silk (the luster). */
+.curtain-sheen {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.curtain-sheen::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 70%;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.07) 35%,
+    rgba(212, 175, 55, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 62%,
+    transparent 100%
+  );
+  animation: silkSheen 11s ease-in-out infinite alternate;
+}
+@keyframes silkSheen {
+  to {
+    transform: translateX(330%);
+  }
+}
+
+/* Wavy leading edges so the closed curtains don't meet in a ruler-straight
+   line. The masks scale with the panel; drop-shadow follows the wave. */
+.curtain-panel-left {
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path d='M0,0 H96 C90,7 97,12 91,20 S97,32 90,40 C85,47 98,53 92,61 S96,74 89,82 C85,89 97,94 93,100 H0 Z' fill='black'/></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path d='M0,0 H96 C90,7 97,12 91,20 S97,32 90,40 C85,47 98,53 92,61 S96,74 89,82 C85,89 97,94 93,100 H0 Z' fill='black'/></svg>");
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  filter: drop-shadow(0 0 16px rgba(212, 175, 55, 0.28));
+}
+.curtain-panel-right {
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path d='M100,0 H4 C10,7 3,12 9,20 S3,32 10,40 C15,47 2,53 8,61 S4,74 11,82 C15,89 3,94 7,100 H100 Z' fill='black'/></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path d='M100,0 H4 C10,7 3,12 9,20 S3,32 10,40 C15,47 2,53 8,61 S4,74 11,82 C15,89 3,94 7,100 H100 Z' fill='black'/></svg>");
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  filter: drop-shadow(0 0 16px rgba(212, 175, 55, 0.28));
 }
 
 /* Thin gold braid running down a panel's leading edge. */
@@ -181,9 +244,13 @@
   mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
 }
 
-/* With reduced motion, the curtain rests fully open. */
+/* With reduced motion, the curtain rests fully open and the sheen holds. */
 @media (prefers-reduced-motion: reduce) {
   .curtain-root {
     --open: 1 !important;
+    --pull: 1 !important;
+  }
+  .curtain-sheen::after {
+    animation: none;
   }
 }

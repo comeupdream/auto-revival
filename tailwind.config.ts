@@ -21,7 +21,7 @@ const config: Config = {
         cream: "rgb(var(--cream) / <alpha-value>)",
       },
       fontFamily: {
-        serif: ["var(--font-serif)", "Cinzel", "Georgia", "serif"],
+        serif: ["var(--font-serif)", "Bodoni Moda", "Didot", "Georgia", "serif"],
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
       },
       borderRadius: {

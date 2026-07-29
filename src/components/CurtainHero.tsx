@@ -42,7 +42,12 @@ export default function CurtainHero() {
       const total = el.offsetHeight - window.innerHeight;
       const scrolled = Math.min(Math.max(-el.getBoundingClientRect().top, 0), total);
       const raw = total > 0 ? scrolled / total : 1;
-      el.style.setProperty("--open", Math.min(raw / OPEN_BY, 1).toFixed(4));
+      const p = Math.min(raw / OPEN_BY, 1);
+      el.style.setProperty("--open", p.toFixed(4));
+      // Panels start a beat after the valance and ease like drawn fabric.
+      const t = Math.min(Math.max((p - 0.04) / 0.96, 0), 1);
+      const pull = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      el.style.setProperty("--pull", pull.toFixed(4));
     };
     const onScroll = () => {
       cancelAnimationFrame(raf);
@@ -63,7 +68,7 @@ export default function CurtainHero() {
     <section
       ref={rootRef}
       className="curtain-root relative"
-      style={{ height: RUNWAY, ["--open" as string]: 0 }}
+      style={{ height: RUNWAY, ["--open" as string]: 0, ["--pull" as string]: 0 }}
     >
       <h1 className="sr-only">
         {SHOP.name} — Premium Auto Detailing
@@ -109,19 +114,19 @@ export default function CurtainHero() {
         {/* --------------------------------------------- Left curtain panel */}
         <div
           aria-hidden="true"
-          className="curtain-fabric absolute inset-y-0 left-0 z-20 w-[52%] will-change-transform"
-          style={{ transform: "translateX(calc(var(--open) * -108%))" }}
+          className="curtain-fabric curtain-panel-left absolute inset-y-0 left-0 z-[21] w-[56%] will-change-transform"
+          style={{ transform: "translateX(calc(var(--pull) * -122%))" }}
         >
-          <div className="curtain-braid absolute inset-y-0 right-0 w-[3px]" />
+          <div className="curtain-sheen" />
         </div>
 
         {/* -------------------------------------------- Right curtain panel */}
         <div
           aria-hidden="true"
-          className="curtain-fabric absolute inset-y-0 right-0 z-20 w-[52%] will-change-transform"
-          style={{ transform: "translateX(calc(var(--open) * 108%)) scaleX(-1)" }}
+          className="curtain-fabric curtain-panel-right absolute inset-y-0 right-0 z-20 w-[56%] will-change-transform"
+          style={{ transform: "translateX(calc(var(--pull) * 122%))" }}
         >
-          <div className="curtain-braid absolute inset-y-0 right-0 w-[3px]" />
+          <div className="curtain-sheen" />
         </div>
 
         {/* -------------------------------------------------- Valance (top) */}

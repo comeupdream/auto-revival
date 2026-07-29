@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Cinzel, Jost } from "next/font/google";
+import { Bodoni_Moda, Jost } from "next/font/google";
 import { SHOP } from "@/lib/shop-config";
 import "./globals.css";
 
-// Engraved, classical display face — the gold-letter look.
-const serif = Cinzel({
+// High-contrast didone — classic luxury with a modern edge (the fashion-
+// masthead look). Pairs with the engraved gold emblem.
+const serif = Bodoni_Moda({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-serif",

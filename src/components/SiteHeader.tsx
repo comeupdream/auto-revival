@@ -27,7 +27,7 @@ export default function SiteHeader({
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-8 text-sm text-ink/80 md:flex">
+        <nav className="hidden items-center gap-7 text-xs uppercase tracking-[0.22em] text-ink/80 md:flex">
           <Link href="/#services" className="transition-colors hover:text-accent">
             Services
           </Link>
@@ -39,7 +39,7 @@ export default function SiteHeader({
           </Link>
           <a
             href={`tel:${SHOP.phone.replace(/[^\d+]/g, "")}`}
-            className="transition-colors hover:text-accent"
+            className="tracking-[0.08em] transition-colors hover:text-accent"
           >
             {SHOP.phone}
           </a>
