@@ -42,3 +42,9 @@ services:
       # Protects /api/cron/reminders; generated for you.
       - key: CRON_SECRET
         generateValue: true
+      # Site lockdown: the whole site sits behind the password gate at /locked
+      # while this is anything but "0". No SITE_GATE_PASSWORD set means no
+      # password opens it — set that env var in the dashboard when you're
+      # ready to hand out access, or flip SITE_LOCKDOWN to "0" to reopen.
+      - key: SITE_LOCKDOWN
+        value: "1"

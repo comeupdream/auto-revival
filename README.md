@@ -113,6 +113,24 @@ endpoint and `NEXT_PUBLIC_SITE_URL` for links in emails.
 
 ---
 
+## Site lockdown
+
+The whole site — every page and API route, `/admin` and the cron endpoint
+included — currently sits behind a password gate at `/locked`
+(`src/middleware.ts`). Two env vars control it:
+
+| Variable             | Effect                                                              |
+| -------------------- | ------------------------------------------------------------------- |
+| `SITE_LOCKDOWN`      | Lockdown is **on unless** set to `0` (unset = locked).               |
+| `SITE_GATE_PASSWORD` | The password that opens the gate. **Unset = no password works.**     |
+
+So out of the box the site is fully bricked: the gate shows, and every
+password is rejected. To hand out access, set `SITE_GATE_PASSWORD`; to reopen
+the site to everyone, set `SITE_LOCKDOWN=0`. (For local dev, put
+`SITE_LOCKDOWN="0"` in `.env` to skip the gate.)
+
+---
+
 ## Deploy (Render)
 
 `render.yaml` is a one-click Render Blueprint: it creates the web service and
