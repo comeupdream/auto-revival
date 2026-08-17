@@ -1,5 +1,18 @@
 # Revive Detail
 
+> ## ⛔ The site is currently FROZEN
+>
+> `src/middleware.ts` answers **every** request — public pages, `/book`,
+> `/admin`, and all API routes — with a bare 503 reading
+> **"SITE DOWN UNTIL PAYMENT RENDERED"**. No booking, no admin, no email, no
+> cron. The rest of this README describes the app as it behaves once the
+> freeze is lifted.
+>
+> **To bring it back up:** set `SITE_FROZEN=false` in the host environment
+> (Render → the service → Environment) and redeploy. No code change needed.
+> The freeze is on whenever `SITE_FROZEN` is unset or set to anything other
+> than `false` / `0` / `off`.
+
 A complete auto-detailing website with **online booking** and a
 password-protected **admin job book** (a live spreadsheet + calendar of every
 appointment), themed in black & gold.
